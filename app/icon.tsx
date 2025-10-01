@@ -13,19 +13,27 @@ export default function Icon() {
     (
       <div
         style={{
-          fontSize: 24,
-          background: '#FF4500',
+          background: 'linear-gradient(135deg, #FF4500 0%, #FF6B35 100%)',
           width: '100%',
           height: '100%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: 'white',
-          fontWeight: 'bold',
-          fontFamily: 'system-ui, sans-serif',
+          borderRadius: '20%',
         }}
       >
-        R
+        <div
+          style={{
+            fontSize: 22,
+            color: 'white',
+            fontWeight: 900,
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            letterSpacing: '-1px',
+            textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+          }}
+        >
+          R
+        </div>
       </div>
     ),
     {
