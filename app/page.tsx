@@ -141,8 +141,8 @@ const SECTIONS: Section[] = [
       </div>
     ),
     ctas: [
-      { href: 'https://github.com/renatodap/wagner-coach', label: 'View Project', variant: 'solid' },
-      { href: 'https://wagner-coach.vercel.app', label: 'Live Demo', variant: 'outline' },
+      { href: 'https://github.com/renatodap/fitness-tracker', label: 'View Project', variant: 'solid' },
+      { href: 'https://sharpened.me', label: 'Live Demo', variant: 'outline' },
     ],
     image: 'fitness-demo', // Special case for fitness demo
     align: 'left',
