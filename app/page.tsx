@@ -421,88 +421,73 @@ export default function HomePage() {
                         // Recycling App - Mobile mockup with computer vision
                         <div className="relative flex justify-center items-center py-8">
                           <div className="relative w-[220px] h-[450px] bg-black rounded-[40px] p-2 shadow-2xl">
-                            <div className="w-full h-full bg-white rounded-[32px] overflow-hidden">
+                            <div className="w-full h-full bg-white rounded-[32px] overflow-hidden flex flex-col">
                               {/* App Header */}
-                              <header className="bg-white border-b-2 border-gray-300 p-3 flex-shrink-0">
-                                <h1 className="text-base font-bold flex items-center gap-2 text-black">
+                              <header className="bg-white border-b border-gray-200 p-2.5 flex-shrink-0">
+                                <h1 className="text-sm font-bold flex items-center gap-1.5 text-black">
                                   <span className="text-green-600">♻️</span>
                                   Recycle Terre Haute
                                 </h1>
                               </header>
 
-                              {/* Main Content */}
-                              <div className="p-3 h-full bg-gray-50">
-                                {/* Image Preview */}
-                                <div className="bg-white rounded-lg p-2 mb-3 border-2 border-gray-300">
-                                  <div className="relative h-32 bg-gradient-to-br from-blue-100 to-green-100 rounded flex items-center justify-center overflow-hidden">
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                      <div className="text-4xl">🥤</div>
-                                    </div>
-                                    {/* AI Detection Overlay */}
-                                    <div className="absolute top-2 right-2 bg-green-600 text-white px-2 py-1 rounded-full text-[9px] font-bold">
-                                      AI: 94% Match
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* Processing Animation */}
-                                <div className="bg-blue-50 border-2 border-blue-600 rounded-lg p-2 mb-3">
-                                  <div className="flex items-center space-x-2">
-                                    <div className="flex space-x-0.5">
-                                      <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse"></div>
-                                      <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse delay-75"></div>
-                                      <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse delay-150"></div>
-                                    </div>
-                                    <div>
-                                      <p className="text-[10px] font-bold text-blue-800">TensorFlow Analysis</p>
-                                      <p className="text-[9px] text-gray-700">MobileNet • 30 categories</p>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* Results */}
+                              {/* Main Content - Scrollable */}
+                              <div className="flex-1 overflow-hidden p-2.5 bg-gray-50">
                                 <div className="space-y-2">
+                                  {/* Image Preview */}
+                                  <div className="bg-white rounded-lg p-2 border border-gray-200">
+                                    <div className="relative h-24 bg-gradient-to-br from-blue-100 to-green-100 rounded flex items-center justify-center">
+                                      <div className="text-3xl">🥤</div>
+                                      {/* AI Detection Badge */}
+                                      <div className="absolute top-1.5 right-1.5 bg-green-600 text-white px-1.5 py-0.5 rounded-full text-[8px] font-bold">
+                                        AI: 94%
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Processing Status */}
+                                  <div className="bg-blue-50 border border-blue-400 rounded-lg p-1.5 flex items-center gap-1.5">
+                                    <div className="flex gap-0.5">
+                                      <div className="w-1 h-1 bg-blue-600 rounded-full animate-pulse"></div>
+                                      <div className="w-1 h-1 bg-blue-600 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                                      <div className="w-1 h-1 bg-blue-600 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                                    </div>
+                                    <div className="flex-1">
+                                      <p className="text-[9px] font-bold text-blue-800">Google Vision API</p>
+                                    </div>
+                                  </div>
+
                                   {/* Item Identification */}
                                   <div className="bg-white rounded-lg p-2 border border-gray-200">
-                                    <p className="text-[10px] font-bold text-gray-600 mb-1">IDENTIFIED ITEM</p>
-                                    <p className="text-xs font-bold text-black">Plastic Bottle - PET #1</p>
-                                    <p className="text-[9px] text-gray-600 mt-1">Coca-Cola bottle, 20 oz</p>
+                                    <p className="text-[9px] font-semibold text-gray-500 mb-0.5">IDENTIFIED</p>
+                                    <p className="text-[11px] font-bold text-black">Plastic Bottle - PET #1</p>
                                   </div>
 
                                   {/* Disposal Instructions */}
-                                  <div className="bg-green-50 border-2 border-green-600 rounded-lg p-2">
+                                  <div className="bg-green-50 border border-green-500 rounded-lg p-2">
                                     <div className="flex items-center gap-1 mb-1">
-                                      <span className="text-green-600 text-xs">✓</span>
-                                      <p className="text-[10px] font-bold text-green-800">RECYCLABLE</p>
+                                      <span className="text-green-600 text-[10px]">✓</span>
+                                      <p className="text-[9px] font-bold text-green-800">RECYCLABLE</p>
                                     </div>
-                                    <ul className="space-y-1">
-                                      <li className="text-[9px] text-gray-700">• Empty and rinse bottle</li>
-                                      <li className="text-[9px] text-gray-700">• Keep cap on</li>
-                                      <li className="text-[9px] text-gray-700">• Blue bin curbside pickup</li>
-                                    </ul>
+                                    <div className="space-y-0.5">
+                                      <p className="text-[8px] text-gray-700">• Empty and rinse</p>
+                                      <p className="text-[8px] text-gray-700">• Keep cap on</p>
+                                      <p className="text-[8px] text-gray-700">• Blue bin pickup</p>
+                                    </div>
                                   </div>
 
-                                  {/* Location Info */}
-                                  <div className="bg-gray-100 rounded-lg p-2">
-                                    <p className="text-[9px] text-gray-600">📍 Nearest drop-off: 0.8 mi</p>
-                                    <p className="text-[9px] font-bold text-gray-800">Wabash Valley Recycling</p>
+                                  {/* Location */}
+                                  <div className="bg-gray-100 rounded-lg p-1.5">
+                                    <p className="text-[8px] text-gray-600">📍 Wabash Valley Recycling</p>
+                                    <p className="text-[8px] font-semibold text-gray-800">0.8 mi away</p>
                                   </div>
                                 </div>
+                              </div>
 
-                                {/* Stats Badge */}
-                                <div className="absolute bottom-20 left-3 right-3">
-                                  <div className="bg-white rounded-lg p-2 border border-gray-200 flex justify-between items-center">
-                                    <span className="text-[9px] text-gray-600">Accuracy: 85-90%</span>
-                                    <span className="text-[9px] text-green-600 font-bold">PWA • Offline Ready</span>
-                                  </div>
-                                </div>
-
-                                {/* New Scan Button */}
-                                <div className="absolute bottom-4 left-3 right-3">
-                                  <button className="w-full bg-green-600 text-white py-2 rounded-lg text-xs font-bold">
-                                    📷 Scan New Item
-                                  </button>
-                                </div>
+                              {/* Bottom Action Button */}
+                              <div className="p-2 bg-white border-t border-gray-200">
+                                <button className="w-full bg-green-600 text-white py-1.5 rounded-lg text-[10px] font-bold">
+                                  📷 Scan New Item
+                                </button>
                               </div>
                             </div>
                           </div>
@@ -589,7 +574,7 @@ export default function HomePage() {
             
             <div className="flex flex-row justify-center items-center gap-5 mb-8">
               <motion.a 
-                href="https://linkedin.com/in/renatodap" 
+                href="https://www.linkedin.com/in/renato-prado-82513b297" 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 aria-label="LinkedIn" 
