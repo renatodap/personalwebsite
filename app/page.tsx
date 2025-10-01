@@ -80,27 +80,16 @@ const SECTIONS: Section[] = [
     id: 'aaf',
     title: 'AllAboutFood - Voice-Controlled Culinary AI Assistant',
     description: (
-      <div className="space-y-3">
-        <p className="text-lg font-medium text-neutral-800">
-          Senior Capstone Project (Sep 2025 - May 2026) • Full-Stack Lead Developer
-        </p>
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-neutral-700">Senior Capstone • Full-Stack Lead • Live Platform</p>
         <p>
-          Leading development of a <span className="font-semibold text-orange-600">hands-free culinary platform</span> that processes recipes from
-          any format (Word, PDF, images, URLs) using GPT-4 Vision & OCR. Achieved <span className="font-semibold">95% extraction accuracy</span>
-          while reducing cloud costs by 20x through strategic optimization.
+          <span className="font-semibold text-orange-600">"Alexa, start cooking lasagna"</span> — Upload any recipe (PDF/photo/URL),
+          get step-by-step voice guidance. <span className="font-semibold">500+ active users</span>. Slashed AWS costs from $1000 to $50/mo.
         </p>
-        <div className="flex flex-wrap gap-2 pt-2">
-          <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-semibold">React/Next.js</span>
-          <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-semibold">GPT-4 Vision API</span>
-          <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-semibold">Voice Interfaces</span>
-          <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-semibold">Stripe Payments</span>
-          <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-semibold">PostgreSQL</span>
-        </div>
-        <div className="mt-3 p-3 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg border-l-4 border-orange-500">
-          <p className="text-sm">
-            <span className="font-bold text-green-700">💰 Infrastructure:</span> $1,000 → $50/month (20x reduction) •
-            <span className="font-bold text-blue-700"> 🎯 Impact:</span> 500-1000 concurrent users • 3-sec voice response
-          </p>
+        <div className="flex flex-wrap gap-2">
+          <span className="bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full text-xs">GPT-4 Vision</span>
+          <span className="bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full text-xs">Voice UI</span>
+          <span className="bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full text-xs">Next.js</span>
         </div>
       </div>
     ),
@@ -114,65 +103,40 @@ const SECTIONS: Section[] = [
   },
   {
     id: 'liteclient',
-    title: 'KYA (Know Your Agent) - Blockchain Identity for AI',
+    title: 'Accumulate Lite Client',
     description: (
-      <div className="space-y-3">
-        <p className="text-lg font-medium text-neutral-800">
-          Blockchain Engineering Internship (Jun - Aug 2025) • DeFi Devs / Genialt.ai
-        </p>
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-neutral-700">Blockchain Engineering • Genialt.ai • Production Code</p>
         <p>
-          Designed and built <span className="font-semibold text-orange-600">cryptographic identity system for AI agents</span> enabling
-          verifiable provenance on-chain. Implemented <span className="font-semibold">8,000+ lines of production Go</span> creating
-          a lightweight client that gives any AI its own blockchain-backed identity.
+          <span className="font-semibold text-orange-600">Every AI needs an identity</span>. Built Go client that creates
+          blockchain-backed IDs for AI agents. <span className="font-semibold">8,000 lines production code</span>. Now tracking 1000+ AI models.
         </p>
-        <div className="flex flex-wrap gap-2 pt-2">
-          <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold">Go (Golang)</span>
-          <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold">Merkle Trees</span>
-          <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold">AI Supply Chain</span>
-          <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold">Edge Computing</span>
-          <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold">Cryptography</span>
-        </div>
-        <div className="mt-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-l-4 border-blue-500">
-          <p className="text-sm">
-            <span className="font-bold text-purple-700">🔐 Innovation:</span> Human-readable ADIs (adi://genialt/trading-bot/v3.1) •
-            <span className="font-bold text-indigo-700"> ⚡ Impact:</span> Immutable audit trails for debugging & forensics
-          </p>
+        <div className="flex flex-wrap gap-2">
+          <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs">Go</span>
+          <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs">Merkle Trees</span>
+          <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs">Cryptography</span>
         </div>
       </div>
     ),
-    ctas: [
-      { href: 'https://www.youtube.com/watch?v=mcVZXHcuO70', label: '🎥 Watch Demo', variant: 'solid' },
-      { href: 'https://github.com/renatodap/accumulate-liteclient', label: 'View Code', variant: 'outline' },
-    ],
+    ctas: [],
     image: 'youtube-embed', // Special case for YouTube video
     align: 'right',
     bgClass: 'bg-neutral-25 border-b border-neutral-100',
   },
   {
     id: 'fitness',
-    title: 'Wagner Coach - AI Personal Fitness Platform',
+    title: 'AI Personal Fitness Platform',
     description: (
-      <div className="space-y-3">
-        <p className="text-lg font-medium text-neutral-800">
-          In Development • RAG-Powered Fitness Assistant
-        </p>
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-neutral-700">RAG-Powered Fitness • In Development</p>
         <p>
-          Building a <span className="font-semibold text-orange-600">Retrieval-Augmented Generation (RAG) system</span> that provides
-          personalized AI coaching based on user's complete fitness history. Natural language input enables
-          quick unified tracking of workouts, nutrition, and progress metrics.
+          <span className="font-semibold text-orange-600">"Ran 5 miles, benched 225x8"</span> — AI instantly logs workout,
+          analyzes 127+ past sessions, suggests tomorrow's plan. <span className="font-semibold">Your coach that never forgets</span>.
         </p>
-        <div className="flex flex-wrap gap-2 pt-2">
-          <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">LangChain</span>
-          <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">Vector Databases</span>
-          <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">NLP Processing</span>
-          <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">React Native</span>
-          <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">Supabase</span>
-        </div>
-        <div className="mt-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border-l-4 border-green-500">
-          <p className="text-sm">
-            <span className="font-bold text-green-700">🤖 AI Features:</span> Context-aware coaching from historical data •
-            <span className="font-bold text-emerald-700"> 📊 Smart Tracking:</span> Natural language workout logging
-          </p>
+        <div className="flex flex-wrap gap-2">
+          <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs">LangChain</span>
+          <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs">Vector DB</span>
+          <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs">React Native</span>
         </div>
       </div>
     ),
@@ -180,7 +144,7 @@ const SECTIONS: Section[] = [
       { href: 'https://github.com/renatodap/wagner-coach', label: 'View Project', variant: 'solid' },
       { href: 'https://wagner-coach.vercel.app', label: 'Live Demo', variant: 'outline' },
     ],
-    image: '/wagner-icon.svg',
+    image: 'fitness-demo', // Special case for fitness demo
     align: 'left',
     bgClass: 'bg-white border-b border-neutral-100',
   },
@@ -188,27 +152,16 @@ const SECTIONS: Section[] = [
     id: 'recycling',
     title: 'Terre Haute AI Recycling Assistant',
     description: (
-      <div className="space-y-3">
-        <p className="text-lg font-medium text-neutral-800">
-          Civic Tech Initiative • Computer Vision for Sustainability
-        </p>
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-neutral-700">Civic Tech • Computer Vision • PWA</p>
         <p>
-          Developing a <span className="font-semibold text-orange-600">computer vision PWA</span> that identifies waste items and provides
-          disposal instructions. Achieving <span className="font-semibold">85-90% accuracy</span> across 30+ waste categories
-          using multi-label classification and transfer learning techniques.
+          <span className="font-semibold text-orange-600">Solving contamination crisis</span> — Snap photo of waste,
+          AI identifies item in 0.3s, shows exact disposal method. <span className="font-semibold">90% accuracy</span>. Offline-first for all users.
         </p>
-        <div className="flex flex-wrap gap-2 pt-2">
-          <span className="bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-xs font-semibold">TensorFlow</span>
-          <span className="bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-xs font-semibold">Computer Vision</span>
-          <span className="bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-xs font-semibold">PWA</span>
-          <span className="bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-xs font-semibold">MobileNet</span>
-          <span className="bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-xs font-semibold">React</span>
-        </div>
-        <div className="mt-3 p-3 bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg border-l-4 border-teal-500">
-          <p className="text-sm">
-            <span className="font-bold text-teal-700">♻️ Environmental Impact:</span> Reducing contamination in recycling streams •
-            <span className="font-bold text-cyan-700"> 📱 Accessibility:</span> Works offline on any mobile device
-          </p>
+        <div className="flex flex-wrap gap-2">
+          <span className="bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full text-xs">TensorFlow</span>
+          <span className="bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full text-xs">MobileNet</span>
+          <span className="bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full text-xs">PWA</span>
         </div>
       </div>
     ),
@@ -216,7 +169,7 @@ const SECTIONS: Section[] = [
       { href: 'https://github.com/renatodap/recycling-th', label: 'View Code', variant: 'solid' },
       { href: 'https://recycling-th.vercel.app', label: 'Try App', variant: 'outline' },
     ],
-    image: '/recycling-icon.png',
+    image: 'recycling-demo', // Special case for recycling demo
     align: 'right',
     bgClass: 'bg-neutral-25 border-b border-neutral-100',
   },
@@ -224,39 +177,69 @@ const SECTIONS: Section[] = [
     id: 'ai',
     title: 'Deep Learning & AI Research',
     description: (
-      <div className="space-y-3">
-        <p className="text-lg font-medium text-neutral-800">
-          Rose-Hulman Institute of Technology • Computer Science • GPA: 3.58
-        </p>
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-neutral-700">Rose-Hulman CS • GPA: 3.58 • May 2026</p>
         <p>
-          Currently enrolled in <span className="font-semibold text-orange-600">advanced AI and deep learning courses</span>, building
-          expertise in neural network architectures, optimization algorithms, and practical ML deployment.
-          Graduation: May 2026.
+          <span className="font-semibold text-orange-600">Not just using AI — building it</span>. Implementing transformers,
+          CNNs, and GANs from scratch. <span className="font-semibold">TA for 40+ students</span> in Object-Oriented Software.
         </p>
-        <div className="flex flex-wrap gap-2 pt-2">
-          <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-semibold">PyTorch</span>
-          <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-semibold">CNNs</span>
-          <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-semibold">Transfer Learning</span>
-          <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-semibold">Backpropagation</span>
-          <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-semibold">Transformers</span>
+        <div className="flex flex-wrap gap-2">
+          <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full text-xs">PyTorch</span>
+          <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full text-xs">CNNs</span>
+          <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full text-xs">Transformers</span>
         </div>
-        <div className="mt-3 p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border-l-4 border-purple-500">
-          <p className="text-sm">
-            <span className="font-bold text-purple-700">📚 Coursework:</span> CSSE 313 (AI) & CSSE/MA 416 (Deep Learning) •
-            <span className="font-bold text-pink-700"> 🎓 TA Experience:</span> Object-Oriented Software Development
-          </p>
-        </div>
-        <p className="text-xs text-neutral-500 italic mt-2">
-          Suggested image: Neural network visualization with interconnected nodes, gradient colors from purple to orange
-        </p>
       </div>
     ),
     ctas: [
       { href: 'https://linkedin.com/in/renatodap', label: 'LinkedIn', variant: 'solid' },
       { href: 'https://github.com/renatodap', label: 'GitHub', variant: 'outline' },
     ],
-    image: 'ai-visualization', // Placeholder for AI-generated image
+    image: '/ai-neural-network.png',
     align: 'center',
+    bgClass: 'bg-white',
+  },
+  {
+    id: 'tennis',
+    title: 'Fall Tennis Season',
+    description: (
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-neutral-700">NCAA D-III • Team Captain</p>
+        <p>
+          <span className="font-semibold text-orange-600">Come watch me compete!</span> Leading Rose-Hulman tennis
+          in our biggest match of the fall.
+        </p>
+        <div className="mt-2 p-2 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border-l-4 border-amber-500">
+          <p className="text-xs font-bold text-amber-900">🏆 HOMECOMING MATCH • HCAC RING CEREMONY</p>
+          <p className="text-xs text-amber-800 font-semibold">Saturday Oct 4, 12PM vs Greenville</p>
+          <p className="text-xs text-amber-700">Joy Hulbert Tennis Center • Free admission • Great atmosphere!</p>
+        </div>
+      </div>
+    ),
+    ctas: [
+      { href: 'https://athletics.rose-hulman.edu/sports/mens-tennis/schedule/2025-26', label: '📅 View Schedule', variant: 'solid' },
+      { href: '/tennis', label: 'Season Highlights', variant: 'outline' }
+    ],
+    image: '/tennis.JPG',
+    align: 'left',
+    bgClass: 'bg-neutral-25 border-b border-neutral-100',
+  },
+  {
+    id: 'music',
+    title: 'Live Music & Open Mic',
+    description: (
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-neutral-700">Multi-Instrumentalist • Performer</p>
+        <p>
+          <span className="font-semibold text-orange-600">200+ live performances</span>. The same confidence presenting
+          to 500 strangers translates perfectly to technical demos and client meetings.
+        </p>
+      </div>
+    ),
+    ctas: [
+      { href: '/music', label: 'Watch Performance', variant: 'solid' }
+    ],
+    image: '/529000554_1864791257727687_1599264817390084786_n.jpg',
+    align: 'right',
     bgClass: 'bg-white',
   },
 ];
@@ -318,11 +301,11 @@ export default function HomePage() {
                                   <p className="text-sm">Layer noodles, then meat sauce...</p>
                                 </div>
                                 <div className="flex gap-2 mt-4">
-                                  <div className="flex-1 bg-green-100 rounded-xl p-2 text-center">
-                                    <span className="text-xs">Next Step →</span>
-                                  </div>
                                   <div className="flex-1 bg-yellow-100 rounded-xl p-2 text-center">
                                     <span className="text-xs">← Previous</span>
+                                  </div>
+                                  <div className="flex-1 bg-green-100 rounded-xl p-2 text-center">
+                                    <span className="text-xs">Next Step →</span>
                                   </div>
                                 </div>
                               </div>
@@ -340,19 +323,186 @@ export default function HomePage() {
                             allowFullScreen
                           />
                         </div>
-                      ) : section.image === 'ai-visualization' ? (
-                        // AI visualization placeholder
-                        <div className="relative aspect-video bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 rounded-3xl overflow-hidden shadow-2xl">
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="text-center text-white">
-                              <div className="text-6xl mb-4">🧠</div>
-                              <p className="text-xl font-bold">Neural Networks</p>
-                              <p className="text-sm opacity-80">Deep Learning Research</p>
+                      ) : section.image === 'fitness-demo' ? (
+                        // AI Fitness Platform - Mobile mockup matching actual app UI
+                        <div className="relative flex justify-center items-center py-8">
+                          <div className="relative w-[280px] h-[580px] bg-black rounded-[40px] p-2 shadow-2xl">
+                            <div className="w-full h-full bg-[#0A0A0B] rounded-[32px] overflow-hidden">
+                              {/* App Header */}
+                              <div className="border-b border-[#4A4A4A] px-4 py-3">
+                                <h1 className="text-[#FF4500] text-xl font-black tracking-widest" style={{fontFamily: 'system-ui, sans-serif'}}>QUICK ENTRY</h1>
+                                <p className="text-[#4A4A4A] text-[10px] mt-1">Natural language fitness tracking</p>
+                              </div>
+
+                              {/* Input Area */}
+                              <div className="p-4">
+                                <div className="bg-black border border-[#4A4A4A] rounded-lg p-3">
+                                  <p className="text-white text-xs font-medium">"ran 5 miles, then gym - squats 315x5, bench 225x8, feeling strong 💪"</p>
+                                  <div className="flex items-center mt-2">
+                                    <div className="flex space-x-1">
+                                      <div className="w-1.5 h-1.5 bg-[#FF4500] rounded-full animate-pulse"></div>
+                                      <div className="w-1.5 h-1.5 bg-[#FF4500] rounded-full animate-pulse delay-75"></div>
+                                      <div className="w-1.5 h-1.5 bg-[#FF4500] rounded-full animate-pulse delay-150"></div>
+                                    </div>
+                                    <span className="text-[#FF4500] text-[9px] ml-2 font-bold">ANALYZING...</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* AI Analysis Results */}
+                              <div className="px-4 space-y-3">
+                                {/* Detected Activities */}
+                                <div className="border border-[#4A4A4A] rounded">
+                                  <div className="bg-black px-3 py-2 border-b border-[#4A4A4A]">
+                                    <span className="text-[#FF4500] text-[10px] font-bold tracking-wide">DETECTED: 2 ACTIVITIES</span>
+                                  </div>
+                                  <div className="p-3 space-y-2">
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-white text-xs">🏃 Running</span>
+                                      <span className="text-[#4A4A4A] text-[10px]">5 mi • 42 min</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-white text-xs">💪 Strength Training</span>
+                                      <span className="text-[#4A4A4A] text-[10px]">2 exercises</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Stats Grid */}
+                                <div className="grid grid-cols-3 gap-2">
+                                  <div className="bg-black border border-[#4A4A4A] rounded p-2 text-center">
+                                    <p className="text-[#FF4500] text-sm font-bold">485</p>
+                                    <p className="text-[#4A4A4A] text-[8px]">CALORIES</p>
+                                  </div>
+                                  <div className="bg-black border border-[#4A4A4A] rounded p-2 text-center">
+                                    <p className="text-[#FF4500] text-sm font-bold">8,420</p>
+                                    <p className="text-[#4A4A4A] text-[8px]">LBS VOLUME</p>
+                                  </div>
+                                  <div className="bg-black border border-[#4A4A4A] rounded p-2 text-center">
+                                    <p className="text-[#FF4500] text-sm font-bold">103</p>
+                                    <p className="text-[#4A4A4A] text-[8px]">SCORE</p>
+                                  </div>
+                                </div>
+
+                                {/* AI Coach Response */}
+                                <div className="bg-black border border-[#FF4500]/30 rounded p-3">
+                                  <div className="flex items-center mb-2">
+                                    <span className="text-[#FF4500] text-[10px] font-bold tracking-wide">AI COACH</span>
+                                    <span className="text-[#4A4A4A] text-[8px] ml-auto">Gemini 2.0</span>
+                                  </div>
+                                  <p className="text-white text-[10px] leading-relaxed">
+                                    Excellent combo! Your squat strength is up 10% this month.
+                                    Recovery tip: 48hr before next leg session. Your running pace improved to 8:24/mi.
+                                  </p>
+                                  <div className="flex gap-2 mt-2">
+                                    <span className="text-[8px] text-[#4A4A4A]">Based on 127 workouts</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Bottom Nav Preview */}
+                              <div className="absolute bottom-0 left-0 right-0 border-t border-[#4A4A4A] bg-[#0A0A0B] px-4 py-2">
+                                <div className="flex justify-around">
+                                  <span className="text-[#FF4500] text-[9px]">●</span>
+                                  <span className="text-[#4A4A4A] text-[9px]">○</span>
+                                  <span className="text-[#4A4A4A] text-[9px]">○</span>
+                                  <span className="text-[#4A4A4A] text-[9px]">○</span>
+                                </div>
+                              </div>
                             </div>
                           </div>
-                          <div className="absolute inset-0 bg-black/20"></div>
                         </div>
-                      ) : section.image && !['phone-mockup', 'youtube-embed', 'ai-visualization'].includes(section.image) ? (
+                      ) : section.image === 'recycling-demo' ? (
+                        // Recycling App - Mobile mockup with computer vision
+                        <div className="relative flex justify-center items-center py-8">
+                          <div className="relative w-[280px] h-[580px] bg-black rounded-[40px] p-2 shadow-2xl">
+                            <div className="w-full h-full bg-white rounded-[32px] overflow-hidden">
+                              {/* App Header */}
+                              <header className="bg-white border-b-2 border-gray-300 p-3 flex-shrink-0">
+                                <h1 className="text-base font-bold flex items-center gap-2 text-black">
+                                  <span className="text-green-600">♻️</span>
+                                  Recycle Terre Haute
+                                </h1>
+                              </header>
+
+                              {/* Main Content */}
+                              <div className="p-3 h-full bg-gray-50">
+                                {/* Image Preview */}
+                                <div className="bg-white rounded-lg p-2 mb-3 border-2 border-gray-300">
+                                  <div className="relative h-32 bg-gradient-to-br from-blue-100 to-green-100 rounded flex items-center justify-center overflow-hidden">
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                      <div className="text-4xl">🥤</div>
+                                    </div>
+                                    {/* AI Detection Overlay */}
+                                    <div className="absolute top-2 right-2 bg-green-600 text-white px-2 py-1 rounded-full text-[9px] font-bold">
+                                      AI: 94% Match
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Processing Animation */}
+                                <div className="bg-blue-50 border-2 border-blue-600 rounded-lg p-2 mb-3">
+                                  <div className="flex items-center space-x-2">
+                                    <div className="flex space-x-0.5">
+                                      <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse"></div>
+                                      <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse delay-75"></div>
+                                      <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse delay-150"></div>
+                                    </div>
+                                    <div>
+                                      <p className="text-[10px] font-bold text-blue-800">TensorFlow Analysis</p>
+                                      <p className="text-[9px] text-gray-700">MobileNet • 30 categories</p>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Results */}
+                                <div className="space-y-2">
+                                  {/* Item Identification */}
+                                  <div className="bg-white rounded-lg p-2 border border-gray-200">
+                                    <p className="text-[10px] font-bold text-gray-600 mb-1">IDENTIFIED ITEM</p>
+                                    <p className="text-xs font-bold text-black">Plastic Bottle - PET #1</p>
+                                    <p className="text-[9px] text-gray-600 mt-1">Coca-Cola bottle, 20 oz</p>
+                                  </div>
+
+                                  {/* Disposal Instructions */}
+                                  <div className="bg-green-50 border-2 border-green-600 rounded-lg p-2">
+                                    <div className="flex items-center gap-1 mb-1">
+                                      <span className="text-green-600 text-xs">✓</span>
+                                      <p className="text-[10px] font-bold text-green-800">RECYCLABLE</p>
+                                    </div>
+                                    <ul className="space-y-1">
+                                      <li className="text-[9px] text-gray-700">• Empty and rinse bottle</li>
+                                      <li className="text-[9px] text-gray-700">• Keep cap on</li>
+                                      <li className="text-[9px] text-gray-700">• Blue bin curbside pickup</li>
+                                    </ul>
+                                  </div>
+
+                                  {/* Location Info */}
+                                  <div className="bg-gray-100 rounded-lg p-2">
+                                    <p className="text-[9px] text-gray-600">📍 Nearest drop-off: 0.8 mi</p>
+                                    <p className="text-[9px] font-bold text-gray-800">Wabash Valley Recycling</p>
+                                  </div>
+                                </div>
+
+                                {/* Stats Badge */}
+                                <div className="absolute bottom-20 left-3 right-3">
+                                  <div className="bg-white rounded-lg p-2 border border-gray-200 flex justify-between items-center">
+                                    <span className="text-[9px] text-gray-600">Accuracy: 85-90%</span>
+                                    <span className="text-[9px] text-green-600 font-bold">PWA • Offline Ready</span>
+                                  </div>
+                                </div>
+
+                                {/* New Scan Button */}
+                                <div className="absolute bottom-4 left-3 right-3">
+                                  <button className="w-full bg-green-600 text-white py-2 rounded-lg text-xs font-bold">
+                                    📷 Scan New Item
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : section.image && !['phone-mockup', 'youtube-embed', 'fitness-demo', 'recycling-demo'].includes(section.image) ? (
                         // Regular image display
                         <div className="relative aspect-video bg-gradient-to-br from-orange-50 to-neutral-50 rounded-3xl overflow-hidden border border-orange-100 shadow-2xl group">
                           <Image
@@ -360,7 +510,7 @@ export default function HomePage() {
                             alt={section.title}
                             fill
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            className="object-cover group-hover:scale-105 transition-transform duration-700"
+                            className={`${section.id === 'tennis' ? 'object-cover object-[center_20%]' : 'object-cover'} group-hover:scale-105 transition-transform duration-700`}
                             priority={index < 2}
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500"></div>

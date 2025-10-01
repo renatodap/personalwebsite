@@ -31,7 +31,7 @@ export const projects: Project[] = [
     category: 'Capstone',
     description:
       'Capstone AI platform: a voice-controlled recipe engine built to personalize food through machine learning and real-time speech interaction.',
-    timeframe: 'Fall 2025 - Spring 2026',
+    timeframe: '2024-2025',
     role: 'Team Lead (Capstone Project)',
     status: 'In Progress',
     tech: ['Python', 'TensorFlow', 'React', 'FastAPI', 'PostgreSQL'],
@@ -54,7 +54,7 @@ export const projects: Project[] = [
     category: 'Internship',
     description:
       'Built during my Accumulate internship: a lightweight blockchain client giving edge-deployed AIs cryptographic identity and auditability through ADIs.',
-    timeframe: 'Summer 2025',
+    timeframe: '2024',
     role: 'Lead Developer (Internship, Solo)',
     status: 'Complete',
     tech: ['Rust', 'ZK Proofs', 'Protocol Buffers', 'CLI'],
@@ -69,8 +69,6 @@ export const projects: Project[] = [
     ],
     links: {
       github: 'https://github.com/renatodap/accumulate-liteclient',
-      video: 'https://youtube.com/your-video-link',
-      page: '/software/accumulate-lite-client',
     },
   },
   {
@@ -165,6 +163,52 @@ export const projects: Project[] = [
     links: {
       github: 'https://github.com/renatodap/java-design-linter',
       video: 'https://youtube.com/your-linter-video',
+    },
+  },
+  {
+    id: 'tennis-leadership',
+    title: 'Tennis Team Captain',
+    category: 'Athletics',
+    description:
+      'Team captain for Rose-Hulman Men\'s Tennis, leading competitive play and team development in NCAA Division III.',
+    timeframe: '2025-26',
+    role: 'Team Captain',
+    status: 'In Progress',
+    tech: ['Leadership', 'Team Management', 'Athletics'],
+    tags: ['Leadership', 'Athletics'],
+    iconType: 'system',
+    media: [
+      {
+        type: 'image',
+        src: '/tennis-team.jpg',
+        alt: 'Rose-Hulman Tennis Team in action',
+      },
+    ],
+    links: {
+      page: '/tennis',
+    },
+  },
+  {
+    id: 'music-creation',
+    title: 'Music Creation & Performance',
+    category: 'Creative',
+    description:
+      'Original music and covers across multiple instruments, from bedroom recordings to live performances, exploring rhythm and melody.',
+    timeframe: 'Ongoing',
+    role: 'Artist & Performer',
+    status: 'In Progress',
+    tech: ['Multi-instrumental', 'Audio Production', 'Live Performance'],
+    tags: ['Creative', 'Music'],
+    iconType: 'design',
+    media: [
+      {
+        type: 'image',
+        src: '/music-setup.jpg',
+        alt: 'Music recording setup with instruments',
+      },
+    ],
+    links: {
+      page: '/music',
     },
   },
 ];
