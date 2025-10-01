@@ -81,14 +81,16 @@ const SECTIONS: Section[] = [
     title: 'AllAboutFood - Voice-Controlled Culinary AI Assistant',
     description: (
       <div className="space-y-2">
-        <p className="text-sm font-medium text-neutral-700">Senior Capstone • Full-Stack Lead • Live Platform</p>
+        <p className="text-sm font-medium text-neutral-700">Senior Capstone • Full-Stack Application • AI/Frontend Lead</p>
         <p>
-          <span className="font-semibold text-orange-600">"Alexa, start cooking lasagna"</span> — Upload any recipe (PDF/photo/URL),
-          get step-by-step voice guidance. <span className="font-semibold">500+ active users</span>. Slashed AWS costs from $1000 to $50/mo.
+          <span className="font-semibold text-orange-600">Recipe management web app with hands-free voice guidance</span>.
+          Upload recipes (PDFs, photos, handwritten notes, old cookbooks) via OCR.
+          <span className="font-semibold"> Dirty hands? Alexa reads</span> instructions step-by-step while you cook.
         </p>
         <div className="flex flex-wrap gap-2">
           <span className="bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full text-xs">GPT-4 Vision</span>
           <span className="bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full text-xs">Voice UI</span>
+          <span className="bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full text-xs">OCR</span>
           <span className="bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full text-xs">Next.js</span>
         </div>
       </div>
@@ -106,14 +108,15 @@ const SECTIONS: Section[] = [
     title: 'Accumulate Lite Client',
     description: (
       <div className="space-y-2">
-        <p className="text-sm font-medium text-neutral-700">Blockchain Engineering • Genialt.ai • Production Code</p>
+        <p className="text-sm font-medium text-neutral-700">Blockchain Engineering • Development in Golang</p>
         <p>
-          <span className="font-semibold text-orange-600">Every AI needs an identity</span>. Built Go client that creates
-          blockchain-backed IDs for AI agents. <span className="font-semibold">8,000 lines production code</span>. Now tracking 1000+ AI models.
+          <span className="font-semibold text-orange-600">Run all functionalities of Accumulate Node with low computing power and memory</span>.
+          Generates lightweight cryptographic proofs so you can <span className="font-semibold">pull data from blockchain and
+          fully trust it</span> without accessing the entire chain.
         </p>
         <div className="flex flex-wrap gap-2">
           <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs">Go</span>
-          <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs">Merkle Trees</span>
+          <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs">Merkle Proofs</span>
           <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-xs">Cryptography</span>
         </div>
       </div>
@@ -128,20 +131,22 @@ const SECTIONS: Section[] = [
     title: 'AI Personal Fitness Platform',
     description: (
       <div className="space-y-2">
-        <p className="text-sm font-medium text-neutral-700">RAG-Powered Fitness • In Development</p>
+        <p className="text-sm font-medium text-neutral-700">RAG System • Adaptive AI Coach & Nutritionist</p>
         <p>
-          <span className="font-semibold text-orange-600">"Ran 5 miles, benched 225x8"</span> — AI instantly logs workout,
-          analyzes 127+ past sessions, suggests tomorrow's plan. <span className="font-semibold">Your coach that never forgets</span>.
+          <span className="font-semibold text-orange-600">AI that learns from every workout and meal</span>.
+          Text "ran 5mi, benched 225x8" or snap photo of your plate—AI logs it, remembers everything,
+          <span className="font-semibold"> adapts your plan weekly</span> based on actual performance.
         </p>
         <div className="flex flex-wrap gap-2">
-          <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs">LangChain</span>
+          <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs">RAG</span>
+          <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs">GPT-4 Vision</span>
           <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs">Vector DB</span>
           <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-xs">React Native</span>
         </div>
       </div>
     ),
     ctas: [
-      { href: 'https://github.com/renatodap/fitness-tracker', label: 'View Project', variant: 'solid' },
+      { href: 'https://github.com/renatodap/fitness-backend', label: 'View Project', variant: 'solid' },
       { href: 'https://sharpened.me', label: 'Live Demo', variant: 'outline' },
     ],
     image: 'fitness-demo', // Special case for fitness demo
@@ -153,21 +158,22 @@ const SECTIONS: Section[] = [
     title: 'Terre Haute AI Recycling Assistant',
     description: (
       <div className="space-y-2">
-        <p className="text-sm font-medium text-neutral-700">Civic Tech • Computer Vision • PWA</p>
+        <p className="text-sm font-medium text-neutral-700">Civic Tech • Computer Vision • Web Application</p>
         <p>
-          <span className="font-semibold text-orange-600">Solving contamination crisis</span> — Snap photo of waste,
-          AI identifies item in 0.3s, shows exact disposal method. <span className="font-semibold">90% accuracy</span>. Offline-first for all users.
+          <span className="font-semibold text-orange-600">Take photo or upload image of waste item</span>—OpenAI API
+          identifies it, app shows <span className="font-semibold">Terre Haute-specific disposal instructions</span>,
+          local drop-off locations, and pickup schedules.
         </p>
         <div className="flex flex-wrap gap-2">
-          <span className="bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full text-xs">TensorFlow</span>
-          <span className="bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full text-xs">MobileNet</span>
-          <span className="bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full text-xs">PWA</span>
+          <span className="bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full text-xs">Google Vision API</span>
+          <span className="bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full text-xs">Next.js</span>
+          <span className="bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full text-xs">OpenAI</span>
         </div>
       </div>
     ),
     ctas: [
-      { href: 'https://github.com/renatodap/recycling-th', label: 'View Code', variant: 'solid' },
-      { href: 'https://recycling-th.vercel.app', label: 'Try App', variant: 'outline' },
+      { href: 'https://github.com/renatodap/recycle_terrehaute', label: 'View Code', variant: 'solid' },
+      { href: 'https://recycle-terrehaute.vercel.app', label: 'Try App', variant: 'outline' },
     ],
     image: 'recycling-demo', // Special case for recycling demo
     align: 'right',
@@ -180,27 +186,24 @@ const SECTIONS: Section[] = [
       <div className="space-y-2">
         <p className="text-sm font-medium text-neutral-700">Rose-Hulman CS • GPA: 3.58 • May 2026</p>
         <p>
-          <span className="font-semibold text-orange-600">Not just using AI — building it</span>. Implementing transformers,
-          CNNs, and GANs from scratch. <span className="font-semibold">TA for 40+ students</span> in Object-Oriented Software.
+          <span className="font-semibold text-orange-600">Building neural networks from scratch</span>.
         </p>
         <div className="flex flex-wrap gap-2">
           <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full text-xs">PyTorch</span>
-          <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full text-xs">CNNs</span>
+          <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full text-xs">Audio ML</span>
+          <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full text-xs">Fine-tuning</span>
           <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full text-xs">Transformers</span>
         </div>
       </div>
     ),
-    ctas: [
-      { href: 'https://linkedin.com/in/renatodap', label: 'LinkedIn', variant: 'solid' },
-      { href: 'https://github.com/renatodap', label: 'GitHub', variant: 'outline' },
-    ],
+    ctas: [],
     image: '/ai-neural-network.png',
     align: 'center',
     bgClass: 'bg-white',
   },
   {
     id: 'tennis',
-    title: 'Fall Tennis Season',
+    title: 'Rose Hulman Tennis Captain',
     description: (
       <div className="space-y-2">
         <p className="text-sm font-medium text-neutral-700">NCAA D-III • Team Captain</p>
@@ -217,7 +220,6 @@ const SECTIONS: Section[] = [
     ),
     ctas: [
       { href: 'https://athletics.rose-hulman.edu/sports/mens-tennis/schedule/2025-26', label: '📅 View Schedule', variant: 'solid' },
-      { href: '/tennis', label: 'Season Highlights', variant: 'outline' }
     ],
     image: '/tennis.JPG',
     align: 'left',
@@ -230,13 +232,17 @@ const SECTIONS: Section[] = [
       <div className="space-y-2">
         <p className="text-sm font-medium text-neutral-700">Multi-Instrumentalist • Performer</p>
         <p>
-          <span className="font-semibold text-orange-600">200+ live performances</span>. The same confidence presenting
-          to 500 strangers translates perfectly to technical demos and client meetings.
+          <span className="font-semibold text-orange-600">Come hear me perform!</span> Guitar and vocals with Zach on saxophone.
         </p>
+        <div className="mt-2 p-2 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border-l-4 border-indigo-500">
+          <p className="text-xs font-bold text-indigo-900">🎸 LIVE PERFORMANCE</p>
+          <p className="text-xs text-indigo-800 font-semibold">Thursday Oct 2, 9:30PM</p>
+          <p className="text-xs text-indigo-700">Charlie's Pub & Grub • 1608 Crawford St, Terre Haute</p>
+        </div>
       </div>
     ),
     ctas: [
-      { href: '/music', label: 'Watch Performance', variant: 'solid' }
+      { href: 'https://www.youtube.com/watch?v=e_Jq2R_8gOo', label: 'Watch Performance', variant: 'solid' }
     ],
     image: '/529000554_1864791257727687_1599264817390084786_n.jpg',
     align: 'right',
@@ -281,11 +287,10 @@ export default function HomePage() {
                       {section.image === 'phone-mockup' ? (
                         // Phone mockup for AllAboutFood
                         <div className="relative flex justify-center items-center py-8">
-                          <div className="relative w-[280px] h-[580px] bg-black rounded-[40px] p-2 shadow-2xl">
+                          <div className="relative w-[220px] h-[450px] bg-black rounded-[40px] p-2 shadow-2xl">
                             <div className="w-full h-full bg-white rounded-[32px] overflow-hidden">
                               <div className="h-14 bg-gradient-to-r from-orange-500 to-orange-600 flex items-center px-4">
                                 <span className="text-white font-bold text-lg">AllAboutFood</span>
-                                <span className="ml-auto text-white/80 text-xs">AI Assistant</span>
                               </div>
                               <div className="p-4 space-y-4">
                                 <div className="bg-orange-50 rounded-2xl p-3">
@@ -305,7 +310,7 @@ export default function HomePage() {
                                     <span className="text-xs">← Previous</span>
                                   </div>
                                   <div className="flex-1 bg-green-100 rounded-xl p-2 text-center">
-                                    <span className="text-xs">Next Step →</span>
+                                    <span className="text-xs">Next →</span>
                                   </div>
                                 </div>
                               </div>
@@ -326,7 +331,7 @@ export default function HomePage() {
                       ) : section.image === 'fitness-demo' ? (
                         // AI Fitness Platform - Mobile mockup matching actual app UI
                         <div className="relative flex justify-center items-center py-8">
-                          <div className="relative w-[280px] h-[580px] bg-black rounded-[40px] p-2 shadow-2xl">
+                          <div className="relative w-[220px] h-[450px] bg-black rounded-[40px] p-2 shadow-2xl">
                             <div className="w-full h-full bg-[#0A0A0B] rounded-[32px] overflow-hidden">
                               {/* App Header */}
                               <div className="border-b border-[#4A4A4A] px-4 py-3">
@@ -415,7 +420,7 @@ export default function HomePage() {
                       ) : section.image === 'recycling-demo' ? (
                         // Recycling App - Mobile mockup with computer vision
                         <div className="relative flex justify-center items-center py-8">
-                          <div className="relative w-[280px] h-[580px] bg-black rounded-[40px] p-2 shadow-2xl">
+                          <div className="relative w-[220px] h-[450px] bg-black rounded-[40px] p-2 shadow-2xl">
                             <div className="w-full h-full bg-white rounded-[32px] overflow-hidden">
                               {/* App Header */}
                               <header className="bg-white border-b-2 border-gray-300 p-3 flex-shrink-0">
