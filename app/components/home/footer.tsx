@@ -1,40 +1,37 @@
-// components/home/Footer.tsx
+'use client';
 
-import Link from "next/link";
+import { SITE, SOCIAL } from '../../data/content';
 
 export default function Footer() {
-  return (
-    <footer className="mt-32 py-12 text-sm text-neutral-500 bg-white border-t border-neutral-200">
-      <div className="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between gap-6 sm:items-center">
-        {/* Left side: Copyright */}
-        <div>
-          © {new Date().getFullYear()} Renato DAP. All rights reserved.
-        </div>
+  const currentYear = new Date().getFullYear();
 
-        {/* Right side: Contact Links */}
-        <div className="flex gap-4 sm:gap-6">
-          <Link
-            href="mailto:renato@example.com"
+  return (
+    <footer className="border-t border-neutral-200 py-8 px-6 sm:px-8 lg:px-12">
+      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-neutral-500">
+        <p>© {currentYear} {SITE.name}</p>
+        <div className="flex items-center gap-6">
+          <a
+            href={`mailto:${SITE.email}`}
             className="hover:text-neutral-900 transition-colors"
           >
             Email
-          </Link>
-          <Link
-            href="https://github.com/renatodap"
+          </a>
+          <a
+            href={SOCIAL.github}
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-neutral-900 transition-colors"
           >
             GitHub
-          </Link>
-          <Link
-            href="https://www.linkedin.com/in/renatodap"
+          </a>
+          <a
+            href={SOCIAL.linkedin}
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-neutral-900 transition-colors"
           >
             LinkedIn
-          </Link>
+          </a>
         </div>
       </div>
     </footer>

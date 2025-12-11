@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# archived code
+_archived/
+
+# misc junk
+nul
+*.log
+
+# claude config (optional)
+.claude/

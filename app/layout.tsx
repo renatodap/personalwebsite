@@ -1,31 +1,33 @@
-// app/layout.tsx
-import "./globals.css";
-import { Inter, JetBrains_Mono } from "next/font/google";
-import Header from "./components/header"; // 👈 import client component
+import './globals.css';
+import { Inter } from 'next/font/google';
+import Header from './components/header';
+import Footer from './components/home/footer';
 
-const inter = Inter({ 
-  subsets: ["latin"],
+const inter = Inter({
+  subsets: ['latin'],
   variable: '--font-inter',
-  display: 'swap'
-});
-
-const jetbrainsMono = JetBrains_Mono({ 
-  subsets: ["latin"],
-  variable: '--font-jetbrains-mono',
-  display: 'swap'
+  display: 'swap',
 });
 
 export const metadata = {
-  title: "Renato DAP",
-  description: "The digital home of Renato DAP — exploring logic, rhythm, and connection."
+  title: 'Renato DAP | AI Engineer',
+  description: 'AI Engineer building production systems. Multi-model pipelines, circuit breakers, and infrastructure that actually ships.',
+  keywords: ['AI Engineer', 'Software Engineer', 'Go', 'Python', 'TypeScript', 'LLM', 'Machine Learning'],
+  authors: [{ name: 'Renato Prado' }],
+  openGraph: {
+    title: 'Renato DAP | AI Engineer',
+    description: 'AI Engineer building production systems that ship.',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="light">
-      <body className={`${inter.variable} ${jetbrainsMono.variable} bg-white text-black overflow-x-hidden min-h-screen`}>
+    <html lang="en" className={inter.variable}>
+      <body className="font-sans antialiased">
         <Header />
-        <main className="w-full">{children}</main>
+        {children}
+        <Footer />
       </body>
     </html>
   );
