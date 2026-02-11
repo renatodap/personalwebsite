@@ -27,28 +27,20 @@ export default function Header() {
         fixed top-0 left-0 right-0 z-50
         transition-all duration-300
         ${hidden ? '-translate-y-full' : 'translate-y-0'}
-        ${scrolled ? 'bg-white/90 backdrop-blur-md border-b border-neutral-100' : 'bg-transparent'}
+        ${scrolled ? 'bg-[#0a0a0a]/90 backdrop-blur-md border-b border-white/5' : 'bg-transparent'}
       `}
     >
       <nav className="max-w-5xl mx-auto flex justify-between items-center h-16 px-6">
         <Link
           href="/"
-          className={`font-medium text-lg transition-colors ${
-            scrolled ? 'text-neutral-900' : 'text-white'
-          }`}
+          className="font-[family-name:var(--font-heading)] font-medium text-lg text-[var(--foreground)] transition-colors"
         >
           {SITE.name}
         </Link>
 
         <a
           href={`mailto:${SITE.email}`}
-          className={`
-            px-4 py-2 rounded-full text-sm font-medium transition-all
-            ${scrolled
-              ? 'bg-neutral-900 text-white hover:bg-neutral-800'
-              : 'bg-white/10 backdrop-blur text-white border border-white/20 hover:bg-white/20'
-            }
-          `}
+          className="px-4 py-2 text-sm font-medium transition-all border border-[var(--foreground)]/20 text-[var(--foreground)] hover:bg-[var(--foreground)] hover:text-[var(--background)]"
         >
           Contact
         </a>

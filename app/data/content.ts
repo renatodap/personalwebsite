@@ -110,6 +110,7 @@ export const ATHLETICS = {
 export const MUSIC = {
   text: "I taught myself guitar, piano, bass, drums, and a few others. I have songs on Spotify. Music and code work the same way for me: start with something rough, find the pattern, clean it up until it clicks.",
   image: '/529000554_1864791257727687_1599264817390084786_n.jpg',
+  mosaic: ['/guitar.jpg', '/piano.jpg', '/bass.jpg', '/drums.JPG', '/ukulele.jpg', '/live.jpg'],
   links: {
     youtube: 'https://www.youtube.com/watch?v=e_Jq2R_8gOo',
     spotify: 'https://open.spotify.com/artist/3VZ8V9XhQ9oZb5XnZ9g8yB',
