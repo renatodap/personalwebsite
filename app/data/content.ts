@@ -3,12 +3,10 @@
 // ============================================================
 
 export const SITE = {
-  name: 'Renato DAP',
-  tagline: 'Engineer & Creator',
+  name: 'Renato Prado',
   email: 'renatodaprado@gmail.com',
-  location: 'Terre Haute, IN',
-  graduation: 'May 2026',
   school: 'Rose-Hulman Institute of Technology',
+  graduation: 'May 2026',
 } as const;
 
 export const SOCIAL = {
@@ -19,9 +17,8 @@ export const SOCIAL = {
 } as const;
 
 export const HERO = {
-  headline: 'Engineer.',
-  headlineAccent: 'Creator.',
-  subtitle: 'Building systems that work—with code, with sound, with intention.',
+  name: 'Renato Prado',
+  schoolLine: 'CS \u00b7 Rose-Hulman \u00b7 2026',
   videos: {
     desktop: '/hero-video2.mp4',
     mobile: '/hero-video-square2.mp4',
@@ -29,12 +26,11 @@ export const HERO = {
 } as const;
 
 // ============================================================
-// AI PHILOSOPHY - Grounded perspective on AI engineering
+// INTRO
 // ============================================================
 
-export const AI_STANCE = {
-  headline: 'AI is a tool. The human is the system.',
-  insight: 'The gap between "using AI" and "engineering with AI" is where real value lives.',
+export const INTRO = {
+  text: "I\u2019m from Brazil, studying CS in Indiana. I co-built an AI platform with my dad, captain a D3 tennis team, and have songs on Spotify. I taught myself seven instruments the same way I learn everything else: by starting.",
 } as const;
 
 // ============================================================
@@ -47,7 +43,7 @@ export type Project = {
   role: string;
   period: string;
   description: string;
-  highlights: string[];
+  highlights?: string[];
   tech: string[];
   image?: string;
   videoId?: string;
@@ -59,14 +55,9 @@ export const PROJECTS: Project[] = [
     id: 'imensiah',
     title: 'IMENSIAH',
     role: 'Co-founder & Lead Engineer',
-    period: '2025 – Present',
-    description: 'AI strategic analysis. 11 frameworks, 48h delivery. Multi-model pipeline with circuit breakers—because AI fails, and systems need to handle that.',
-    highlights: [
-      '4-model AI pipeline via OpenRouter',
-      'Circuit breaker pattern for graceful degradation',
-      'Go/Gin backend with Domain-Driven Design',
-    ],
-    tech: ['Go', 'Next.js', 'PostgreSQL', 'Redis'],
+    period: '2025 \u2013 Present',
+    description: 'An AI platform that runs strategic analysis for Brazilian companies. It puts a business through SWOT, Porter\u2019s Five Forces, and nine other frameworks using multiple AI models. When one model goes down, the system routes to another. We\u2019re piloting with ASSESPRO-SP, a tech association with 104 member companies.',
+    tech: ['Next.js', 'TypeScript', 'PostgreSQL', 'Redis'],
     image: '/imensiah.png',
     link: { label: 'Visit', href: 'https://imensiah.com.br' },
   },
@@ -74,14 +65,9 @@ export const PROJECTS: Project[] = [
     id: 'aaf',
     title: 'AllAboutFood',
     role: 'AI/Frontend Lead',
-    period: '2025 – Present',
-    description: 'Voice-controlled cooking assistant. OCR for recipes, Siri integration. Reduced cloud costs from $1,000 to $30/month by engineering smarter.',
-    highlights: [
-      'Siri integration via Swift App Intents',
-      'Gemini API parsing with 95%+ accuracy',
-      'OCR for PDFs, photos, handwritten notes',
-    ],
-    tech: ['Gemini API', 'Swift', 'Next.js'],
+    period: '2025 \u2013 Present',
+    description: 'Senior capstone with a team of four. A cooking app that reads handwritten recipe cards through your phone camera using Gemini Vision, then walks you through each step hands-free via Siri. Our cloud bill started at $1,000/month. I got it to $30.',
+    tech: ['Flutter', 'Go', 'Gemini API', 'Swift'],
     image: '/allaboutfood-app.png',
     link: { label: 'Try it', href: 'https://allaboutfood.cafe' },
   },
@@ -90,12 +76,8 @@ export const PROJECTS: Project[] = [
     title: 'Accumulate Lite Client',
     role: 'Software Intern',
     period: 'Summer 2025',
-    description: 'Lightweight blockchain verification. Full node functionality, minimal compute. 8,000+ lines of Go cryptography.',
-    highlights: [
-      'Three-tier Merkle proof verification',
-      'KYA framework for AI agent identities',
-    ],
-    tech: ['Go', 'Cryptography', 'Merkle Proofs'],
+    description: 'Summer internship project. A web client that verifies blockchain accounts using lightweight cryptographic proofs instead of running a full node. Three-tier Merkle proof verification, real-time queries against Accumulate mainnet, 2KB proof size.',
+    tech: ['Go', 'Next.js', 'Cryptography'],
     videoId: 'mcVZXHcuO70',
     link: { label: 'Demo', href: 'https://youtube.com/watch?v=mcVZXHcuO70' },
   },
@@ -104,64 +86,30 @@ export const PROJECTS: Project[] = [
     title: 'LLM Error Classification',
     role: 'Deep Learning Research',
     period: 'Nov 2025',
-    description: 'Fine-tuned Llama 3.2 for error classification. Understanding when AI fails is more valuable than assuming it won\'t.',
-    highlights: [
-      'Accuracy: 14% → 98%',
-      '50% VRAM reduction via optimization',
-    ],
+    description: 'Research project. I fine-tuned Llama 3.2 to classify when language models get things wrong. Started at 14% accuracy. Ended at 98%. Cut GPU memory usage in half along the way.',
     tech: ['PyTorch', 'Llama 3.2', 'Fine-tuning'],
     image: '/llm-research.png',
-    link: { label: 'Demo', href: 'https://moodmixer.vercel.app' },
-  },
-  {
-    id: 'recycling',
-    title: 'Terre Haute Recycling',
-    role: 'Civic Tech',
-    period: '2024',
-    description: 'Photo → AI identification → local disposal instructions. City-specific recycling guidance.',
-    highlights: [
-      'Google Vision API identification',
-      'Local drop-off locations integrated',
-    ],
-    tech: ['Google Vision', 'Next.js', 'OpenAI'],
-    image: '/recycling-app.png',
-    link: { label: 'Try it', href: 'https://recycle-terrehaute.vercel.app' },
   },
 ];
 
+export const GITHUB_LINK = {
+  text: '60+ repos on GitHub. These are the ones that matter most.',
+  href: 'https://github.com/renatodap',
+} as const;
+
 // ============================================================
-// ATHLETICS
+// PERSONAL
 // ============================================================
 
-export const TENNIS = {
-  team: "Rose-Hulman Men's Tennis",
-  role: 'Team Captain',
-  achievement: 'All-Heartland Conference Honorable Mention',
-  scheduleUrl: 'https://athletics.rose-hulman.edu/sports/mens-tennis/schedule/2025-26',
+export const ATHLETICS = {
+  text: "I captain Rose-Hulman\u2019s tennis team. All-Conference honorable mention. I also ran the 2025 Indianapolis Half Marathon at 7:32/mi.",
   image: '/tennis.JPG',
-  nextMatch: {
-    opponent: 'Case Western Reserve',
-    date: 'Feb 6, 2026',
-    location: 'Crawfordsville, IN',
-  },
+  scheduleUrl: 'https://athletics.rose-hulman.edu/sports/mens-tennis/schedule/2025-26',
 } as const;
-
-export const RUNNING = {
-  event: '2025 Indianapolis Monumental',
-  distance: 'Half Marathon',
-  pace: '7:32/mi',
-  image: '/half-marathon.jpg',
-} as const;
-
-// ============================================================
-// MUSIC
-// ============================================================
 
 export const MUSIC = {
-  title: 'Live Music',
-  description: 'Guitar, vocals, live performances. The creative side that complements the engineering.',
+  text: "I taught myself guitar, piano, bass, drums, and a few others. I have songs on Spotify. Music and code work the same way for me: start with something rough, find the pattern, clean it up until it clicks.",
   image: '/529000554_1864791257727687_1599264817390084786_n.jpg',
-  instruments: ['Guitar', 'Vocals', 'Bass', 'Piano'],
   links: {
     youtube: 'https://www.youtube.com/watch?v=e_Jq2R_8gOo',
     spotify: 'https://open.spotify.com/artist/3VZ8V9XhQ9oZb5XnZ9g8yB',

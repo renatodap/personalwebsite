@@ -10,13 +10,12 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: 'Renato DAP | AI Engineer',
-  description: 'AI Engineer building production systems. Multi-model pipelines, circuit breakers, and infrastructure that actually ships.',
-  keywords: ['AI Engineer', 'Software Engineer', 'Go', 'Python', 'TypeScript', 'LLM', 'Machine Learning'],
+  title: 'Renato Prado',
+  description: 'CS senior at Rose-Hulman. Software developer, tennis captain, musician.',
   authors: [{ name: 'Renato Prado' }],
   openGraph: {
-    title: 'Renato DAP | AI Engineer',
-    description: 'AI Engineer building production systems that ship.',
+    title: 'Renato Prado',
+    description: 'CS senior at Rose-Hulman. Software developer, tennis captain, musician.',
     type: 'website',
   },
 };

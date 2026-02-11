@@ -2,7 +2,7 @@
 
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef, useState, useEffect } from 'react';
-import { HERO, SITE } from '../../data/content';
+import { HERO } from '../../data/content';
 
 export default function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -50,17 +50,11 @@ export default function HeroSection() {
         transition={{ duration: 1, delay: 0.2 }}
       >
         <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-semibold text-white tracking-tight mb-4">
-          {HERO.headline}
-          <br />
-          <span className="text-neutral-400">{HERO.headlineAccent}</span>
+          {HERO.name}
         </h1>
 
-        <p className="text-lg sm:text-xl text-neutral-300 max-w-xl mx-auto">
-          {HERO.subtitle}
-        </p>
-
-        <p className="mt-8 text-sm text-neutral-400">
-          {SITE.name} · {SITE.school}
+        <p className="text-lg sm:text-xl text-neutral-300">
+          {HERO.schoolLine}
         </p>
       </motion.div>
 
