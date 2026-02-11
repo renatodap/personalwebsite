@@ -66,7 +66,7 @@ export const PROJECTS: Project[] = [
     title: 'AllAboutFood',
     role: 'AI/Frontend Lead',
     period: '2025 \u2013 Present',
-    description: 'Senior capstone with a team of four. A cooking app that reads handwritten recipe cards through your phone camera using Gemini Vision, then walks you through each step hands-free via Siri. Our cloud bill started at $1,000/month. I got it to $30.',
+    description: 'Senior capstone with a team of four. A cooking app that reads handwritten recipe cards through your phone camera using Gemini Vision, then walks you through each step hands-free via Siri. Our cloud bill started at $1,000/month. We got it to $30.',
     tech: ['Flutter', 'Go', 'Gemini API', 'Swift'],
     image: '/allaboutfood-app.png',
     link: { label: 'Try it', href: 'https://allaboutfood.cafe' },
