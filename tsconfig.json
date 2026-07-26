@@ -1,12 +1,16 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "ES2022",
     "lib": [
       "dom",
       "dom.iterable",
       "esnext"
     ],
-    "types": ["react", "react-dom"],
+    "types": [
+      "react",
+      "react-dom",
+      "vitest/globals"
+    ],
     "jsx": "preserve",
     "jsxImportSource": "react",
     "allowJs": true,
@@ -19,11 +23,10 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-
     "baseUrl": ".",
     "paths": {
       "@/*": [
-        "./*"
+        "./src/*"
       ]
     },
     "incremental": true,

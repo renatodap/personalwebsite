@@ -48,7 +48,7 @@ import tempfile
 from pathlib import Path
 
 try:
-    from PIL import Image
+    from PIL import Image, ImageFilter
 except ImportError:
     sys.exit("Pillow is required:  pip install Pillow")
 
@@ -59,6 +59,22 @@ TURDSIZE = 8        # drop speckles smaller than this many pixels (generator noi
 ALPHAMAX = 1.2      # corner smoothing; >1 favours curves over corners
 OPTTOLERANCE = 0.3  # curve-fitting slack; higher = fewer segments = smaller file
 RESOLUTION = 72     # dpi, so 1 output unit == 1 source pixel
+
+# How much to thicken the line BEFORE tracing, in source pixels.
+#
+# The renders carry a ~1.4px line inside a 1024px frame. Displayed at assembly
+# scale (~190px) that is a 0.26px line — sub-pixel, so it aliases into a jagged,
+# broken edge. Thickening has to happen somewhere.
+#
+# Doing it here, by dilating the bitmap, is the cheap place: potrace then traces
+# an already-fat line and emits fill-only paths. The obvious alternative — adding
+# an SVG `stroke` to the traced paths — was tried and rejected: stroking 200-odd
+# path commands with round joins is genuinely expensive to rasterise, and with 20
+# drawings on one page it stalled first paint badly enough to hang a headless
+# screenshot. Dilation costs nothing at render time.
+#
+# 3 => a 3x3 minimum filter, roughly +1px of line on every side.
+DILATE = 3
 
 # Luminance split between ink and ground. The renders sit near the extremes
 # (ground ~35, ink ~240 in 8-bit grey), so the exact value is not delicate.
@@ -72,13 +88,17 @@ def require_potrace() -> str:
     return path
 
 
-def to_bitmap(png: Path, dest: Path, threshold: int) -> None:
-    """Greyscale, threshold, invert, write a 1-bit PBM for potrace."""
+def to_bitmap(png: Path, dest: Path, threshold: int, dilate: int = DILATE) -> None:
+    """Greyscale, threshold, invert, thicken, write a 1-bit PBM for potrace."""
     with Image.open(png) as im:
         grey = im.convert("L")
     # Ink (bright) -> 0/black so potrace traces it; ground (dark) -> 255/white.
-    bitmap = grey.point(lambda p: 0 if p > threshold else 255, mode="L").convert("1")
-    bitmap.save(dest, format="PPM")
+    mono = grey.point(lambda p: 0 if p > threshold else 255, mode="L")
+    if dilate and dilate >= 3:
+        # MinFilter takes the darkest pixel in the window, which grows the black
+        # ink outward — dilation of the line, erosion of the ground.
+        mono = mono.filter(ImageFilter.MinFilter(dilate))
+    mono.convert("1").save(dest, format="PPM")
 
 
 def trace(potrace: str, pbm: Path, dest: Path) -> None:
@@ -119,6 +139,7 @@ def retint(svg_text: str, title: str) -> str:
     if not body:
         raise ValueError("could not read potrace output body")
     inner = body.group(1).strip()
+
     inner = inner.replace('fill="#000000"', 'fill="currentColor"')
 
     safe_title = title.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")

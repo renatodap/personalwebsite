@@ -58,3 +58,6 @@ public/drawings/*.png
 
 # Playwright MCP scratch output
 .playwright-mcp/
+
+# local screenshots
+*.jpeg
