@@ -82,9 +82,31 @@ The index of work is a **field of identically sized detail crops** — every cro
 
 Grid: parts float on an implied orthographic axis, not a 12-column web grid. Asymmetry is expected — a drawing arranges around the object, not around the page center.
 
+## Copy discipline
+
+**Words are rare and expensive.** *(added 2026-07-26, at Renato's instruction: "use words very rarely, only when words are truly needed" and "every single word and comma and millimetre has to serve an exact purpose and contribute to the storytelling.")*
+
+This is a hard constraint, and it is the reason the drawing world fits rather than a coincidence: a technical drawing is nearly wordless by nature. Its labels are terse because a label that could be omitted is noise.
+
+Rules:
+- **A sentence must earn its place against the alternative of a drawing.** If the image already says it, delete the sentence. Nothing is captioned merely because captions are conventional.
+- **No paragraph appears anywhere on Sheet 1.** The bill of materials does the introducing.
+- **No adjectives doing a fact's work.** "Seven, self-taught" over "an accomplished multi-instrumentalist."
+- **The same discipline applies to space.** Every rule, gap, and margin is deliberate; nothing is spaced by default. A millimetre that isn't doing work is the same failure as a word that isn't.
+- **Nothing is stated that the structure can imply.** Specifically: the site never claims playfulness, curiosity, range, or that its subject never grew up. Those are conveyed by what sits next to what, or not at all.
+
 ## Imagery
 
-Photography never competes with line work. Photographs and video are **parts of the assembly**, placed inside drawn viewport frames with a callout number, and duotoned into the cyanotype field so they read as material rather than as content pasted on top. The existing hero video is kept and treated exactly this way.
+Photography never competes with line work — in practice the site contains **no photographs at all**. Every image is a traced line drawing derived from a real photograph of Renato. There is no hero video *(cut 2026-07-26)*.
+
+**The drawings are SVG, not raster.** They were authored as 1024×1024 PNGs and vectorised by `scripts/vectorize_drawings.py` (threshold → potrace → retint). The raster originals are the *authoring* artifact and are not shipped. Result: 22 MB → 0.64 MB, and every drawing became token-driven.
+
+Each SVG carries `fill="currentColor"`, a `viewBox="0 0 1024 1024"`, a `<title>`, and **no background of its own** — so the ground is always the page's `--field` and the ink is always CSS-supplied. Verified: 23/23 files, zero baked colours.
+
+Two render paths, chosen by context:
+
+- **`mask-image` for the crop field and anywhere many drawings appear at once.** `mask: url(…) center/contain no-repeat` with `background-color: var(--line)`. The colour stays token-driven, the browser caches the file, and the DOM stays light.
+- **Inline `<svg>` only for the few drawings in the assembly itself**, where paths need individual animation (`stroke-dashoffset`) or per-part callout targeting. Inlining is expensive — these traces run ~15–50 KB of path data each — so it is reserved, never the default.
 
 No stock imagery. No generic icon tiles. No gradients or glass standing in where an authored drawing belongs. Icons, where needed, are drawn in the drawing's own grammar.
 

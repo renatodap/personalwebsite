@@ -52,3 +52,6 @@ nul
 
 # Brainstorming visual companion
 .superpowers/
+
+# Drawing authoring artifacts — the shipped assets are the traced SVGs
+public/drawings/*.png

@@ -1,0 +1,9 @@
+- generic [active] [ref=e1]:
+  - 'heading "1 — Default ink (color: var(--line))" [level=1] [ref=e2]'
+  - paragraph [ref=e3]: All 23. If any shows a blue box behind it, the background was not stripped.
+  - figure "peter-pan" [ref=e5]:
+    - 'img "Line drawing: peter pan" [ref=e7]'
+  - 'heading "2 — Recolour proof (color: var(--markup))" [level=1] [ref=e21]'
+  - paragraph [ref=e22]: Same files, different CSS. Proves the ink is not baked into the SVG.
+  - heading "3 — Inverted ground" [level=1] [ref=e24]
+  - paragraph [ref=e25]: Light paper, dark ink. Proves the drawings carry no background of their own.

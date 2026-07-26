@@ -53,7 +53,9 @@ The claim a neighbouring site could not truthfully copy is **the volume plus the
 
 **Hard content constraints (confirmed, binding):**
 - **No client names. No company names. No product or application names.** Not for employer clients, not for the sites built as favors, not for his own personal tools. Work is described by what it did, never by who it was for.
-- The existing **hero video is kept.**
+- **No hero video.** *(reversed 2026-07-26 — the original brief said "keep my hero video"; Renato dropped it.)* The first screen is the drawing alone. This also resolves a standing tension with the rule that photography never competes with the line work.
+- **Do not tally output.** Counts of applications shipped, clients served, servers run, or repositories maintained are banned from the site, even though every one is true. They read as bragging.
+- **Keep coursework quiet.** The capstone and the fine-tuning research may appear, but the site must never read as a student's. Nothing is framed as an assignment, a class, or a degree requirement.
 - He is in **Indianapolis**; the employer relationship is **remote**. Do not place him at the employer's location.
 - A previously co-founded AI venture is **cut entirely** — it must not appear anywhere, in any tense.
 
@@ -82,18 +84,19 @@ Real, verifiable, and usable — all of it must be presented without naming the 
 - **The fleet:** ~13 self-hosted applications, one shared Postgres, self-hosted S3-compatible object storage, push-to-deploy on every one.
 - **Athletics:** D3 men's tennis captain, All-Conference honorable mention. 2025 Indianapolis Half Marathon at 7:32/mi.
 - **Music:** seven self-taught instruments — guitar, piano, bass, drums, ukulele, harmonica, voice. Original songs published. Existing photography for each instrument in `public/`.
-- **Existing assets:** hero video (landscape + square cuts), instrument photography, tennis photography, project screenshots.
+- **Line drawings, authored 2026-07-25/26:** ~20 square cyanotype line drawings derived from his own photographs — playing live, drums, bass, keys, tennis serve and forehand, running, the finish line, the deadlift, camera work, a film set, at the laptop, graduation, Brazil as a child, and childhood counterparts for guitar, racket and camcorder. Two "wear" images — a snapped racket and a fistful of broken drumsticks — carry the thesis better than any metric. Sources in `~/Desktop/pcis`, output in `public/drawings/`.
+- **Superseded:** a hero video (landscape and square cuts) exists in `public/` but is no longer used.
 
 **Absences that must not be filled by invention:** no third-party press, no awards, no named references, no public client testimonials beyond the one translated quote above, no traffic or revenue figures.
 
 ## Product Principles
 
-1. **Volume is the argument.** One impressive project reads as luck; the true story is how many things he has finished. Structure must let quantity accumulate rather than forcing a top-three.
-2. **Numbers carry the weight, and every number carries its mechanism.** A figure without the reason it happened is a claim, and reads as inflated.
+1. **Range is the argument, not volume.** *(revised 2026-07-26 — this previously read "volume is the argument" and cited counts of applications shipped and servers run. Renato rejected those as bragging.)* The story is not how many things he has finished; it is that the same person does all of these things, and taught himself most of them. Structure must let breadth accumulate without ever tallying it.
+2. **Show the doing, not the scoreboard.** Prefer a drawing of him mid-serve over a count of matches. Where a number does appear it must be inherent to the fact rather than a boast — "seven instruments" describes a method of learning; "twelve applications a quarter" is a metric. Every number that survives carries its mechanism.
 3. **The work is anonymous; the outcome is not.** Describe what changed for someone, never who they were.
 4. **Breadth is evidence of one trait, never a menu of identities.** Music, sport, and engineering are the same behavior in three materials — present them as one thing, not as three sections competing for the hero.
 5. **Simple execution, radical structure.** The memorability budget is spent on the organizing idea. Once that idea is chosen, everything else gets quieter, not louder.
 
 ## Accessibility & Inclusion
 
-No product-specific requirement established beyond the standard bar: AA contrast, real text in HTML rather than baked into images, semantic headings, keyboard operability, and `prefers-reduced-motion` honored — the site keeps a hero video and must not depend on motion to convey meaning.
+No product-specific requirement established beyond the standard bar: AA contrast, real text in HTML rather than baked into images, semantic headings, keyboard operability, and `prefers-reduced-motion` honored — no information may exist only in an animated state.
