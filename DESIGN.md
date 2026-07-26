@@ -65,17 +65,13 @@ The unit of this site. A square box carrying one drawing.
 
 **Render path: `mask-image`, always.** `mask: url(…) center no-repeat` with `background-color: var(--ink)`. The ink stays token-driven, the browser caches the file, and the DOM never carries path data. The retired world reserved an inline-`<svg>` path for per-part animation; nothing in this world animates individual paths, so **inline SVG is not used**. Every drawing is a mask.
 
-**Every plate carries a `--z` zoom factor, and this is mandatory rather than polish.** The traces contain wildly different amounts of empty margin: `camera` is a tight portrait that fills its 1024 box, while `serve`, `graduation` and `peter-pan` are small full-body figures occupying a third of it. Fitting all of them to the same box makes half look accidental. `mask-size: calc(var(--z) * 100%)` sizes past the box and lets the surplus crop.
+**Nothing is ever cropped.** `mask-size: contain`, always. These are drawings of a person and clipping a head is not a tradeoff worth making. *(Binding, at Renato's instruction 2026-07-26: "make sure no svg renderings crop.")*
 
-Measured bands, settled at first build:
+**Figure size is normalised in the asset, not the renderer.** The traces contain wildly different amounts of empty margin: measured against their own artwork, `graduation` fills 31% of its box width and `falls` 75% of its height, while `camera` fills 99% of both. Fitting all of them to one 1024 box makes half look accidental.
 
-| Band | `--z` | Drawings |
-|---|---|---|
-| Tight portrait | `1.00`–`1.10` | camera, working, webcam-guitar, falls, broken-sticks, medal, first-camera, drums |
-| Mid figure | `1.10`–`1.20` | guitar, bass, keys, filmset, first-guitar, broken-racket, finish, tennis |
-| Small full body | `1.45`–`1.55` | serve, running, graduation, deadlift, brazil, first-racket, peter-pan |
+`scripts/tighten_viewbox.mjs` trims each viewBox to its own bounding box. Afterwards every drawing fills its own box, so `contain` alone produces consistent figure heights, landing between 75% and 100% of the plate. Bounds were measured with `getBBox()` in a real browser, because these are potrace outputs full of cubic beziers and a control-point box would be wrong; they are recorded in the script so the transform is reproducible.
 
-`--z` is a content field, editable per frame, because the right value is a judgement about a specific drawing.
+There is therefore **no zoom or size field anywhere** in the data or the components. The first attempt at this used a per-drawing `--z` that sized the mask past the box and let the surplus crop; it was replaced because it violated the no-cropping rule. Any zoom knob reappearing is a sign cropping has come back.
 
 A plate is sized by **height** when it stands alone and by **column width** when it sits in a run. Sizing a run by viewport height is the mistake that makes a traced line vanish: at `22vh` the drum kit is nearly invisible, at `1fr` of the measure it holds.
 
@@ -84,7 +80,12 @@ A plate is sized by **height** when it stands alone and by **column width** when
 The whole vocabulary. There are five things.
 
 - **Plate** — one drawing, full height, with an optional caption set in the margin beside it. The default frame.
-- **Run** — three to four plates in a row, sized by column width, at about `78dvh`. Deliberately shorter than a plate so it reads as the quiet between the big pictures. Folds to two columns under 860px.
+
+  **Words shrink the plate; silence enlarges it.** A captioned plate runs `min(68vh, 56vw)`; a wordless one runs `min(78vh, 64vw)`. A silent frame has no caption to balance its left margin, so the figure grows to become the composition itself. This also puts emphasis where it belongs: the peak and the ending are the two largest things on the site, and both are silent. The ceiling is 78vh rather than higher because the header is fixed and trimmed viewBoxes put ink at the box edge.
+
+- **Run** — two to four plates in a row, sized by column width, at about `70dvh`. Deliberately shorter than a plate so it reads as the quiet between the big pictures. Folds to two columns under 860px.
+
+  The column cap **scales with the count** (`430px` at two, `350px` at three, `300px` at four) so every run fills a similar band. Sizing a run by viewport height is the mistake that makes a traced line vanish; giving two plates the four-plate cap is the mistake that leaves them stranded in an empty row.
 - **Pair** — two plates at equal weight, side by side, no caption. Reserved for the wear frame (the snapped racket and the fistful of broken drumsticks), which is the emotional peak of the page.
 - **Caption** — one to three short sentences, set in the left margin, right-aligned against the plate on desktop so its edge points at the figure. Below the plate on mobile.
 - **Rail** — a column of twelve ticks at the right edge, one per frame, the active one full-strength ink and wider. The close has no tick. This is real navigation and is keyboard operable. It is the only progress affordance; **there is no scroll cue.**
@@ -151,6 +152,9 @@ Each checked against the world's own materials. None of these bans a device a cy
 - No emoji. No icon sets; the site needs no icons.
 - No skill bars, proficiency meters, or technology logo walls.
 - No hand-rolled decorative SVG. The twenty-three authored drawings are the imagery; nothing else is drawn.
+- **No cropping of a drawing, ever**, by any mechanism: not `mask-size` past 100%, not `object-fit: cover`, not an `overflow: hidden` box smaller than its figure.
+- No `content-visibility: auto` on a frame. It was tried and removed: skipped subtrees paint as bare ground, which on a page whose entire content is images means blank screens. The full mask payload is ~0.64 MB across all twenty-three, each cached individually, so there is nothing to defer.
+- No animation of a layout property. The rail tick scales on `transform`, never `width`.
 - No eyebrow labels above sections. There are no sections.
 - No LLM register: "passionate about", "cutting-edge", "seamless", "leverage", "delve into", "a testament to", "unlock the potential".
 - No invented content. Every number traces to something real.
