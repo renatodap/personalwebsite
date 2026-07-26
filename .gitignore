@@ -49,3 +49,6 @@ nul
 
 # claude config (optional)
 .claude/
+
+# Brainstorming visual companion
+.superpowers/
