@@ -70,13 +70,13 @@ describe("composition", () => {
     }
   });
 
-  it("keeps most of the twelve frames wordless", () => {
+  it("leaves eight of the twelve frames wordless", () => {
     // Words are rare and expensive: a sentence has to earn its place against the
     // alternative of a drawing.
     const silent = frames.filter((f) => f.caption === "").length;
 
     expect(frames.length).toBe(12);
-    expect(silent).toBeGreaterThanOrEqual(6);
+    expect(silent).toBe(8);
   });
 
   it("never captions the closing run of frames", () => {

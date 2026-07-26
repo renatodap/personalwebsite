@@ -152,5 +152,12 @@ export const SETTINGS = {
   githubUrl: "https://github.com/renatodap",
   linkedinUrl: "https://www.linkedin.com/in/renato-prado-82513b297",
   youtubeUrl: "https://www.youtube.com/@RenatoDAP",
-  spotifyUrl: "https://open.spotify.com/artist/3VZ8V9XhQ9oZb5XnZ9g8yB",
+
+  /* EMPTY ON PURPOSE, needs Renato. The value here was
+     open.spotify.com/artist/3VZ8V9XhQ9oZb5XnZ9g8yB, which returns 404; it had
+     been carried forward unverified since the first seed. The Close component
+     filters empty links, so the entry simply does not render until a real URL
+     replaces this. A dead link in the last thing on the page is worse than a
+     missing one, and PRODUCT.md bans inventing anything. */
+  spotifyUrl: "",
 };

@@ -319,7 +319,10 @@ body {
   z-index: 3;
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  /* 15px gap plus the anchors' 4px padding gives a 24px pitch, which is the
+     WCAG 2.2 target-size floor. At 9px the pitch was 18px and failed both the
+     size rule and its spacing exemption. */
+  gap: 15px;
 }
 
 .rail a {
@@ -389,6 +392,47 @@ body {
   }
 }
 
+/* ── Fallback surfaces ─────────────────────────────────────────────────────
+   error.tsx and not-found.tsx. Same two colours, same family, no drawing: the
+   world holds even when the data does not arrive.                             */
+.fallback {
+  min-height: 100dvh;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 22px;
+  padding: var(--pad);
+  text-align: center;
+}
+
+.fallback p {
+  font-size: clamp(15px, 1.25vw, 18px);
+}
+
+.fallback a,
+.fallback button {
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink-70);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--ink-45);
+  transition: color 180ms var(--ease-out), text-decoration-color 180ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .fallback a:hover,
+  .fallback button:hover {
+    color: var(--ink);
+    text-decoration-color: var(--ink);
+  }
+}
+
 /* ── Motion ────────────────────────────────────────────────────────────────
    Two motions and no others. Both CSS, neither on the main thread.
 
@@ -396,9 +440,12 @@ body {
    reduced motion, get the settled state: a plain vertical sequence, fully
    legible. No information exists only in an animated state.                   */
 @media (prefers-reduced-motion: no-preference) {
-  html {
-    scroll-behavior: smooth;
-  }
+  /* NO `scroll-behavior: smooth`. It was here and was removed: it is a third
+     motion, which this world does not have, and it broke the rail. Smooth
+     scrolling 8500px from the first tick to the last means the visitor rides
+     through every intervening frame instead of arriving, and the control sits
+     dead for seconds before anything moves. A navigation control that does not
+     move on click is not navigation. */
 
   /* 1. The plate develops. A cyanotype's native behaviour is exposure: the
         image appears under light. First frame only, once, on load. */
@@ -444,9 +491,10 @@ body {
 
 /* ── Mobile ────────────────────────────────────────────────────────────────
    The margin-set caption has no margin to sit in, so the plate centres and the
-   caption goes BENEATH it. The grid rows are explicit because the caption
-   precedes the plate in DOM order, which is correct for reading order on
-   desktop and wrong for it here.                                              */
+   caption goes BENEATH it. The grid rows are explicit on BOTH breakpoints, so
+   the layout never depends on source order: the DOM is plate then caption, the
+   natural order for figure/figcaption, and desktop lifts the caption into the
+   left margin by grid placement alone.                                        */
 @media (max-width: 860px) {
   .frame--plate {
     grid-template-columns: minmax(0, 1fr);
@@ -463,13 +511,21 @@ body {
     margin-right: 0;
   }
 
+  /* The caption takes the plate's own box rather than the frame's, so their
+     left edges match. Pinning it to the padding instead left the caption flush
+     left against a centred plate: an 8px mismatch at 390px, but 123px at 768px,
+     which is iPad portrait and every half-width laptop window. */
   .frame--plate .cap {
     grid-column: 1;
     grid-row: 2;
-    justify-self: start;
+    /* Same width expression as the plate, and centred like it. `justify-self`
+       must be restated: the desktop rule sets `end`, which against a centred
+       plate leaves the caption flush right and the two edges unrelated. */
+    justify-self: center;
+    width: min(84vw, 460px);
+    max-width: none;
     text-align: left;
     padding-bottom: 0;
-    max-width: 34ch;
   }
 
   /* Four across would be four thumbnails and the line would disappear. */
@@ -479,6 +535,16 @@ body {
     grid-auto-columns: auto;
     justify-content: stretch;
     gap: 18px;
+  }
+
+  /* A three-plate run folds to 2 + 1, which reads as a layout accident. That
+     matters most on the one frame it applies to: the three childhood plates,
+     whose whole job is to establish the same rule three times. Centring the
+     third at the same size keeps it a repetition rather than an orphan. */
+  .strip[data-n="3"] > :last-child {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: calc(50% - 9px);
   }
 
   .frame--run {

@@ -44,7 +44,6 @@ async function main() {
         plates: {
           create: frame.plates.map((p, j) => ({
             drawing: p.drawing,
-            zoom: p.zoom,
             alt: p.alt,
             sortOrder: j,
           })),

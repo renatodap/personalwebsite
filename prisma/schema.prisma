@@ -55,7 +55,7 @@ model Frame {
   id   String    @id @default(cuid())
   kind FrameKind @default(PLATE)
 
-  /// Empty is normal and expected: six of the twelve frames carry no words.
+  /// Empty is normal and expected: eight of the twelve frames carry no words.
   /// A newline separates lines; second and later lines render at --ink-70.
   /// Never captions a childhood plate - the adjacency is the statement, and a
   /// caption would say the thing the structure is there to imply.

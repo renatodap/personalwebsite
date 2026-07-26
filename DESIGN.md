@@ -45,7 +45,7 @@ Measured contrast against `--field`, not assumed:
 
 - `--ink` on `--field`: **12.8:1** — AAA at every size.
 - `--ink-70` on `--field`: **7.0:1** — AAA for body text. Safe for the role line at 12.5px.
-- `--ink-45` on `--field`: **3.75:1** — fails AA for text, passes the 3:1 non-text floor (WCAG 1.4.11). Restricted to rail ticks, and the rail's active state is carried by full-strength ink plus width, never by colour alone.
+- `--ink-45` on `--field`: **3.75:1** — fails AA for text, passes the 3:1 non-text floor (WCAG 1.4.11). Restricted to rail ticks, and the rail's active state is carried by full-strength ink plus length, never by colour alone. Length is animated with `transform: scaleX`, never `width`, because width is a layout property.
 
 An unlit edge or coating vignette is native to the material and is deliberately **not used**: at these sizes it renders as a gradient, which reads as screen chrome rather than paper.
 
@@ -92,7 +92,7 @@ The whole vocabulary. There are five things.
 
 Header: name at top-left, role and location at top-right, one line each, fixed. It exists so a visitor who leaves in five seconds still leaves with the literal facts.
 
-Close: contact links on the bare field, no drawing. Nothing follows it.
+Close: contact links on the bare field, no drawing. It is a colophon, not a thirteenth frame, and carries no rail tick.
 
 ## Layout
 
@@ -104,7 +104,7 @@ Content measure caps at 1360px. Beware `margin-inline: auto` on a grid item — 
 
 ## Copy discipline
 
-**Words are rare and expensive.** Six of the twelve frames carry none.
+**Words are rare and expensive.** Eight of the twelve frames carry none.
 
 - **A sentence must earn its place against the alternative of a drawing.** If the image says it, delete the sentence.
 - **Plain first person, short declaratives.** No adjectives doing a fact's work. Renato's own voice is the reference: "I taught myself seven instruments the same way I learn everything else. By starting."
@@ -122,7 +122,7 @@ Each SVG carries `fill="currentColor"`, `viewBox="0 0 1024 1024"`, a `<title>`, 
 
 Five drawings are of Renato as a child: `brazil`, `first-guitar`, `first-racket`, `first-camera`, `peter-pan`. They are drawn at exactly the same ink weight and plate treatment as the adult ones, because the claim is that they are current components of the present person, not history. **Nothing marks them as childhood.**
 
-`brazil` (the boy with a Brazilian flag) and `falls` (the adult at Iguaçu) are a pair and sit adjacent, uncaptioned. `peter-pan` is the only childhood drawing with no adult counterpart; it is last, and nothing follows it.
+`brazil` (the boy with a Brazilian flag) and `falls` (the adult at Iguaçu) are a pair and sit adjacent, uncaptioned. `peter-pan` is the only childhood drawing with no adult counterpart. It is the last **image**: nothing is drawn after it, and the close that follows carries no drawing, so the boy is the final thing the visitor looks at.
 
 ## Motion
 
@@ -139,13 +139,15 @@ Everything else is still. No hover animation except a link underline and the rai
 
 ## Prohibitions
 
-Each checked against the world's own materials. None of these bans a device a cyanotype plate book actually uses.
+Each checked against the world's own materials, with one narrowing recorded below.
 
 **Retired with the old world, and specifically not to return:** item numbers, callout balloons, leader lines, dimension lines, break lines, title blocks, bills of materials, revision tables, sheet tabs, detail bubbles, `SCALE 2:1` notes, ISO line-weight semantics, and any monospace type. These are blueprint furniture. The visitor was being asked to learn a notation before being allowed to look.
 
 **Also banned:**
 
-- No visible frame numbers or `01 / 12` pagination. The rail shows position spatially. A number here would be the item number returning in disguise.
+- No visible frame numbers or `01 / 12` pagination. The rail shows position spatially.
+
+  **This is the one narrowing, and it is not justified by the world.** Atkins captioned and identified every plate in *Photographs of British Algae*; Muybridge numbered his plates and the frames inside them. Numbering is the plate book's own hand, not blueprint furniture. It is excluded here anyway because this site is one page rather than a bound volume, and because a number in this specific lineage would be read as the retired `ITEM 00` returning in costume. Recorded as a deliberate cost, so a future editor knows it was decided rather than assumed.
 - No scroll cues: no "Scroll", no arrow, no animated wheel.
 - No drop shadows, gradients, glows, or glassmorphism.
 - No rounded card shells. No cards at all.
@@ -163,4 +165,4 @@ Each checked against the world's own materials. None of these bans a device a cy
 
 `/admin` is not yet built. When it is: same two colours, same family, working weight, mode is Operate, so density and scanability outrank expression. Neither motion appears there.
 
-It edits **content only** — the frames, their order, their captions, their `--z`, and the header and contact strings. Layout and design are code and are not editable, chosen deliberately so the design cannot drift.
+It edits **content only**: the frames, their order, their captions, and the header and contact strings. **Not** figure size, which lives in the asset and has no knob. Layout and design are code and are not editable, chosen deliberately so the design cannot drift.

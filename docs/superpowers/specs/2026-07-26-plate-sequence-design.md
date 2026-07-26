@@ -232,3 +232,29 @@ Reduced motion and unsupported browsers get the settled state: a plain vertical 
 2. **Frame 3's client story is anonymous by rule but unverified in phrasing.** "Somebody else's spreadsheet" and "three weeks" are mechanism, not party, so they satisfy the anonymity constraint. `PRODUCT.md` still flags "confirm before shipping any case description" as inferred; that confirmation has not happened.
 3. **`falls` is assumed to be Iguaçu.** The pairing of frames 9 and 10 rests on it being Brazil. If it is another waterfall the pair still reads as travel but loses the Brazil-to-Indiana reading.
 4. **Whether the header should also carry a contact link.** Currently contact lives only at frame 13, which a visitor who leaves early never reaches. Left out for now on restraint grounds; worth revisiting after the five-person test.
+
+---
+
+## 13. Changed during implementation
+
+This spec was written before the build. Everything below diverged from it, on purpose; sections above are left as written so the reasoning is auditable, and this is the authoritative list of where they are now stale.
+
+**Cropping is banned, and `zoom` is gone entirely** *(§3, §9, and the plate bands in DESIGN.md)*. Renato's instruction on 2026-07-26: "make sure no svg renderings crop." The spec's `zoom Float` field normalised figure size by scaling the mask past its box and letting the surplus fall outside, which is cropping by construction. Replaced by `scripts/tighten_viewbox.mjs`, which trims each drawing's viewBox to its own artwork so `mask-size: contain` alone gives consistent figure heights. The `Plate` model has no size field, the components take no size prop, and a test asserts the data carries none. Consequently §3's stated reason for two tables is now half void: the relation exists for `alt` and `sortOrder`, not for per-plate zoom.
+
+**Two captions were cut, so eight of twelve frames are silent, not six** *(§4)*. Frame 3's client story was removed at Renato's instruction. Frame 7's line ("I like the part that doesn't work yet") was removed after he asked what it was supposed to mean, which is the only review that matters; it was a compression of his own "the messy middle" and it compressed past legibility. He then chose to leave frame 7 silent rather than replace it.
+
+**There is now no professional proof beyond the header role line.** §4 called frame 3 "the only professional proof beyond the header," and it is gone. This is Renato's explicit call and the site is a calling card with no conversion event, but it is the single biggest deliberate omission and is recorded as such.
+
+**Runs are `70dvh`, not `78dvh`** *(§3, §4)*, and their column cap scales with plate count (430px at two, 350px at three, 300px at four). A two-plate run at the four-plate cap left its plates stranded in an empty row.
+
+**`content-visibility: auto` was removed, not required** *(§8)*. It paints skipped subtrees as bare ground, which on a page made entirely of images means blank screens. The assumption that 23 masks would stall first paint was inherited from the retired design, which put many drawings on screen at once; this one shows at most four per frame.
+
+**`scroll-behavior: smooth` was added and then removed.** It is a third motion, which this world does not have, and it broke the rail: smooth-scrolling the full page height means the visitor rides through every intervening frame instead of arriving.
+
+**The copy guard moved** *(§5)*. `src/lib/copy-guard.ts` is deleted. The rules live in `prisma/copy-rules.mjs`, shared by the seed and the tests, so there is one implementation instead of a TypeScript copy plus an inline duplicate in the seed that had already drifted.
+
+**DOM order is plate then caption** *(§11)*. The spec claimed the caption precedes the plate. It does not: `figure` takes its `figcaption` last, and both breakpoints place the caption with explicit grid rows, so layout never depends on source order.
+
+**`getSettings()` reads instead of upserting.** An upsert meant a GET wrote to the database on every render and revalidation, and would fail outright against a read-only connection.
+
+**The pacing tradeoff is worse than §4 estimated.** §4 said the length cost was "mitigated by the last four frames being wordless and fast." Measured, frames 9 through 12 are about a third of the page and contain its three largest images, so the tail is the slowest stretch, not the fastest. Recorded rather than fixed: see the open pacing question below.

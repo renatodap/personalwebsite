@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Renato Prado">
+  <!-- The rail, which is the only abstract mark this site owns: ticks of
+       unequal length with one at full strength. Legible at 16px, made of the
+       two tokens and nothing else. -->
+  <rect width="32" height="32" fill="#0b2a45"/>
+  <g fill="#f4efe6">
+    <rect x="17" y="7" width="8" height="3"/>
+    <rect x="7" y="15" width="18" height="3"/>
+    <rect x="17" y="23" width="8" height="3"/>
+  </g>
+</svg>
