@@ -55,3 +55,6 @@ nul
 
 # Drawing authoring artifacts — the shipped assets are the traced SVGs
 public/drawings/*.png
+
+# Playwright MCP scratch output
+.playwright-mcp/

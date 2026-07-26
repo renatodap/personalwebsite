@@ -1,4 +1,0 @@
-- generic [active] [ref=f3e1]:
-  - 'heading "background-color: var(--line)" [level=2] [ref=f3e2]'
-  - 'heading "background-color: var(--markup)" [level=2] [ref=f3e16]'
-  - heading "inverted ground" [level=2] [ref=f3e24]
