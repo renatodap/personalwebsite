@@ -1,52 +1,35 @@
-import { getSettings, getParts, getAnchor, getDetails, getRevisions, getWorkNote } from "@/lib/content";
-import { recentActivities } from "@/lib/activity";
-import {
-  TitleBlock, Assembly, BillOfMaterials, Pair, Wear, Work, Live, Revisions, ItemZero, Contact,
-} from "@/components/sheet/sections";
+import { getSettings, getFrames } from "@/lib/content";
+import { Frame } from "@/components/frame";
+import { Header, Close } from "@/components/chrome";
+import { Rail } from "@/components/rail";
 
 export const revalidate = 900;
 
 /**
- * Sheet 1 of 1.
+ * The sequence.
  *
- * The order is the argument, so it is worth stating plainly:
- *
- *   title block   the literal facts, for the visitor who leaves in five seconds
- *   assembly      adult parts only — establishes the wrong belief on purpose
- *   BOM           the introduction, with no adjective column to boast in
- *   pairs         the spine: the same part, twenty years apart, unexplained
- *   wear          the peak: things broken by being used, held up laughing
- *   work          the one but/therefore beat, naming nobody
- *   live          proof the object is still in service
- *   revisions     the timeline, in the form that stops it becoming a speech
- *   ITEM 00       the pair that never closes — the ending
- *   title block   SHEET 1 OF 1: the whole person fitted on one page
+ * Order is the argument, and the reasoning for this particular order lives with
+ * the data that defines it, in prisma/sequence.mjs. In short: the guitar opens
+ * because the header has already said "engineer", so the first image is free to
+ * break the expectation rather than confirm it; the wear pair in the middle is
+ * the peak and is silent; the three childhood plates establish a rule and the
+ * last one breaks it. The page never states the conclusion.
  */
-export default async function Sheet() {
-  const [settings, parts, anchor, details, revisions, work, live] = await Promise.all([
-    getSettings(), getParts(), getAnchor(), getDetails(), getRevisions(), getWorkNote(), recentActivities(4),
-  ]);
-
-  // Parts carrying a childhood counterpart become pairs, in sheet order.
-  // Unpaired parts stay in the assembly only — they are the present tense the
-  // pairs point at, and the quiet between them.
-  const pairs = parts.filter((p) => p.earlyDrawing);
+export default async function Page() {
+  const [settings, frames] = await Promise.all([getSettings(), getFrames()]);
 
   return (
-    <main>
-      <TitleBlock s={settings} />
-      <Assembly parts={parts} />
-      <BillOfMaterials parts={parts} anchor={anchor} />
-      {pairs.map((p) => (
-        <Pair key={p.id} part={p} />
-      ))}
-      <Wear details={details} />
-      <Work note={work} />
-      <Live lines={live} />
-      <Revisions revisions={revisions} />
-      <ItemZero anchor={anchor} />
-      <Contact s={settings} />
-      <TitleBlock s={settings} footer />
+    <>
+      <Header s={settings} />
+      {frames.length > 1 ? <Rail count={frames.length} /> : null}
+
+      <main>
+        {frames.map((frame, i) => (
+          <Frame key={frame.id} frame={frame} index={i} isFirst={i === 0} />
+        ))}
+        <Close s={settings} />
+      </main>
+
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -56,11 +39,21 @@ export default async function Sheet() {
             name: settings.subjectName,
             jobTitle: settings.subjectRole,
             url: "https://renatodap.me",
-            address: { "@type": "PostalAddress", addressLocality: "Indianapolis", addressRegion: "IN", addressCountry: "US" },
-            sameAs: [settings.githubUrl, settings.linkedinUrl, settings.youtubeUrl, settings.spotifyUrl].filter(Boolean),
+            address: {
+              "@type": "PostalAddress",
+              addressLocality: "Indianapolis",
+              addressRegion: "IN",
+              addressCountry: "US",
+            },
+            sameAs: [
+              settings.githubUrl,
+              settings.linkedinUrl,
+              settings.youtubeUrl,
+              settings.spotifyUrl,
+            ].filter(Boolean),
           }),
         }}
       />
-    </main>
+    </>
   );
 }

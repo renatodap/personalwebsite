@@ -1,135 +1,575 @@
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   Plate Sequence. A cyanotype plate book of one person in motion.
+
+   Two colours and one type family. The drawings are the display element, so
+   nothing here competes with them: there is no headline size on this site.
+   World contract in DESIGN.md.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 :root {
-  --field: #0C2942;
-  --field-deep: #081D2F;
-  --line: #EAF2F8;
-  --line-soft: #8FB0C7;
-  --markup: #FF4A2E;
+  /* Prussian blue ground and warm rag-paper ink. The ink is deliberately WARM:
+     in a cyanotype the white IS the paper, and paper is not blue-cast white.
+     Measured against --field, not assumed:
+       --ink      12.8:1  AAA at every size
+       --ink-70    7.0:1  AAA for body
+       --ink-45    3.75:1 fails AA for text, passes the 3:1 non-text floor */
+  --field: #0b2a45;
+  --ink: #f4efe6;
+  --ink-70: rgb(244 239 230 / 0.7);
+  --ink-45: rgb(244 239 230 / 0.45);
 
-  --w-visible: 1.4px;
-  --w-thin: 0.6px;
+  --pad: clamp(20px, 3.4vw, 52px);
+  --measure: 1360px;
 
-  --sheet-pad: clamp(14px, 3.2vw, 42px);
-  --rule: color-mix(in srgb, var(--line) 26%, transparent);
-  --rule-faint: color-mix(in srgb, var(--line) 13%, transparent);
+  /* Exponential ease-out. The built-in curves are too weak to read as decided. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-@theme inline {
-  --color-field: var(--field);
-  --color-line: var(--line);
-  --color-line-soft: var(--line-soft);
-  --color-markup: var(--markup);
-  --font-letter: var(--font-letter);
-  --font-data: var(--font-data);
-}
+/* There is no light mode and no accent colour. The world is a single pinned
+   theme, on Renato's instruction, so the surface never inverts and no section
+   flips ground. */
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 html {
+  background: var(--field);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
+
+  /* `proximity`, never `mandatory`. Mandatory fights the reader on a page this
+     long and can trap keyboard users between snap points. */
+  scroll-snap-type: y proximity;
 }
 
 body {
-  margin: 0;
   background: var(--field);
-  color: var(--line);
-  font-family: var(--font-data), ui-monospace, monospace;
-  font-variant-numeric: tabular-nums;
-  font-size: 13px;
+  color: var(--ink);
+  font-family: var(--font-archivo), system-ui, sans-serif;
+  font-size: 16px;
   line-height: 1.5;
   overflow-x: hidden;
 }
 
-/* Drawing lettering — uppercase, open tracking, exactly as a drawing letters it. */
-.letter {
-  font-family: var(--font-letter), system-ui, sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  font-weight: 500;
+::selection {
+  background: var(--ink);
+  color: var(--field);
+}
+
+/* No accent exists, so focus is drawn in ink. */
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
 }
 
 .sr-only {
-  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
-  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
-/* ── The drawing itself ─────────────────────────────────────────────
-   SVG as a mask, ink from background-color, so every drawing answers to
-   --line and carries no colour of its own. Cheap: the browser caches the
-   file instead of the DOM carrying 30 KB of path data per drawing.        */
-.dwg {
+/* ── The plate ─────────────────────────────────────────────────────────────
+   One drawing. Rendered as a mask so the ink stays token-driven and the browser
+   caches the file instead of the DOM carrying 15-50 KB of path data. Nothing on
+   this site animates individual paths, so inline SVG is never used.            */
+.plate {
   display: block;
-  width: 100%;
   aspect-ratio: 1;
-  background-color: var(--line);
-  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
-  -webkit-mask-size: contain;     mask-size: contain;
-  -webkit-mask-position: center;  mask-position: center;
-  /* Each traced mask costs real rasterisation work — measured, not assumed.
-     `paint` isolates the repaint; `strict` would also apply SIZE containment,
-     which makes the box lay out as if it were empty and collapses the
-     aspect-ratio to a sliver. Paint only. */
+  background-color: var(--ink);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+
+  /* `contain` fits the whole drawing inside the box and can never crop. That is
+     a hard requirement: these are drawings of a person, and clipping a head is
+     not a tradeoff worth making.
+     Consistent figure size comes from the ASSETS instead, via
+     scripts/tighten_viewbox.mjs, which trims each viewBox to its artwork. After
+     that every drawing fills its own box, so figure heights land within 75-100%
+     of the plate with no per-drawing zoom anywhere. */
+  mask-size: contain;
+  -webkit-mask-size: contain;
+
+  /* `paint` only. `strict` would add size containment, which makes the box lay
+     out as if empty and collapses the aspect ratio to a sliver. */
   contain: paint;
 }
 
-/* Skip rendering entirely for sections still below the fold. Without this the
-   browser rasterises every mask on the sheet at once, which is slow enough to
-   stall first paint on a mid-range phone. The intrinsic size keeps the
-   scrollbar honest so nothing jumps as sections come into view. */
-main > section {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 420px;
+/* ── Frames ────────────────────────────────────────────────────────────────
+   Three kinds and nothing else. See DESIGN.md.                                */
+.frame {
+  position: relative;
+
+  /* Horizontal only. Vertical space comes from min-height plus centring, so
+     there is no padding to fight the min-height for control of frame height. */
+  padding-inline: var(--pad);
 }
-.dwg-soft { background-color: var(--line-soft); }
-.dwg-markup { background-color: var(--markup); }
 
-/* ── The one orchestrated motion ────────────────────────────────────
-   Parts separate along their leader lines as the assembly scrolls through.
-   Pure CSS scroll-driven animation: no JS, no library. Browsers without
-   support render the assembled state — which is also what reduced-motion
-   gets, and which is fully legible on its own.                            */
+/* NO `content-visibility: auto` here, deliberately.
+   It was added on the assumption that 23 masks would stall first paint on a
+   mid-range phone. That assumption was inherited from the retired design, which
+   put many drawings on screen at once; this one shows at most four per frame.
+   Measured, it bought very little, and it cost real blank frames: skipped
+   subtrees paint as empty ground, which is catastrophic on a page whose entire
+   content is images. Total mask payload is ~0.64 MB across all 23, each cached
+   individually by the browser. */
+
+.frame--plate,
+.frame--pair {
+  min-height: 100dvh;
+  scroll-snap-align: start;
+}
+
+/* PLATE: figure held right of centre, caption set in the left margin with its
+   right edge pointing at the figure. The large quiet void on the left is the
+   composition, not leftover space. */
+.frame--plate {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  align-content: center;
+  column-gap: clamp(28px, 5vw, 88px);
+
+  /* Without this the plate hugs the right edge of the window on a wide screen
+     and the left column becomes an unbounded void rather than a margin. */
+  max-width: calc(var(--measure) + var(--pad) * 2);
+  margin-inline: auto;
+}
+
+.frame--plate .plate {
+  grid-column: 2;
+  grid-row: 1;
+  /* Height drives the square, capped against viewport width so a narrow window
+     shrinks the plate instead of squeezing it. */
+  height: min(68vh, 56vw);
+  margin-right: clamp(0px, 3vw, 48px); /* clear the rail */
+}
+
+/* Words shrink the plate; silence enlarges it. A wordless frame has nothing to
+   balance the left margin, so the figure grows to become the composition
+   itself. This also puts the emphasis where it belongs: the peak and the
+   ending are the two biggest things on the site, and both are silent.
+
+   Capped at 78vh rather than higher because the header is fixed: now that the
+   viewBoxes are trimmed, ink reaches the box edge, so a taller plate collides
+   with the name on a laptop-height window. */
+.frame--solo .plate {
+  height: min(78vh, 64vw);
+}
+
+.frame--plate .cap {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: end;
+  text-align: right;
+  padding-bottom: 7vh;
+  max-width: 27ch;
+}
+
+/* RUN: two to four plates sized by COLUMN WIDTH. Sizing a run by viewport
+   height is the mistake that makes a traced line vanish: at 22vh the drum kit
+   is nearly invisible. Shorter than a plate and deliberately not a snap point,
+   so it reads as the quiet between the big pictures. */
+.frame--run {
+  min-height: 70dvh;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 44px;
+}
+
+.strip {
+  /* NOT `margin-inline: auto`: auto margins on a grid item override the default
+     stretch and size it to content, which collapses a row of columns to almost
+     nothing. */
+  width: 100%;
+  max-width: var(--measure);
+  display: grid;
+  grid-auto-flow: column;
+
+  /* Capped, not `1fr`. With 1fr a two-plate run gave each plate half the
+     measure, about 660px, which is nearly the size of a full plate: the run
+     stopped reading as the quiet between the big pictures.
+     The cap scales with the count so a run always fills a similar band. Two
+     plates at the four-plate size read as two stragglers in an empty row. */
+  grid-auto-columns: clamp(120px, 22vw, 300px);
+  justify-content: center;
+  gap: clamp(8px, 1.6vw, 28px);
+  align-items: center;
+}
+
+.strip[data-n="2"] {
+  grid-auto-columns: clamp(150px, 32vw, 430px);
+}
+
+.strip[data-n="3"] {
+  grid-auto-columns: clamp(130px, 26vw, 350px);
+}
+
+.strip .plate {
+  width: 100%;
+  height: auto;
+}
+
+/* Centred, not flush left. The strip centres its capped columns, so its real
+   left edge moves with the plate count; a left-aligned caption sits against the
+   measure instead and lands a few dozen pixels off it. Centring removes the
+   mismatch rather than chasing it. */
+.frame--run .cap {
+  max-width: 52ch;
+  text-align: center;
+}
+
+/* PAIR: two plates at equal weight, no caption. The wear frame, and the peak. */
+.frame--pair {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+}
+
+.duo {
+  width: 100%;
+  max-width: var(--measure);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(16px, 3vw, 56px);
+  align-items: center;
+}
+
+.duo .plate {
+  width: 100%;
+  height: auto;
+}
+
+/* ── Caption ───────────────────────────────────────────────────────────────
+   One to three short sentences. Measured narrow, because a caption in a plate
+   book is narrow. Lines after the first drop to --ink-70 so a three-line
+   caption still has a clear entry point.                                      */
+.cap {
+  font-size: clamp(15px, 1.25vw, 18px);
+  line-height: 1.55;
+  letter-spacing: -0.004em;
+  text-wrap: pretty;
+}
+
+.cap span {
+  display: block;
+}
+
+.cap span + span {
+  margin-top: 0.5em;
+  color: var(--ink-70);
+}
+
+/* ── Header ────────────────────────────────────────────────────────────────
+   The literal facts, fixed, so a visitor who leaves in five seconds still
+   leaves knowing who this is.                                                 */
+.head {
+  position: fixed;
+  top: var(--pad);
+  left: var(--pad);
+  right: var(--pad);
+  z-index: 3;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 24px;
+  pointer-events: none;
+}
+
+.head a {
+  pointer-events: auto;
+}
+
+.name {
+  font-size: 12px;
+  font-weight: 600;
+  font-variation-settings: "wdth" 118;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.who {
+  font-size: 12.5px;
+  color: var(--ink-70);
+  white-space: nowrap;
+}
+
+/* ── Rail ──────────────────────────────────────────────────────────────────
+   Twelve ticks, one per frame. Real anchors, so navigation works with no JS.
+   The only progress affordance on the site: there is no scroll cue, and no
+   frame number is ever drawn (a number here would be the retired item number
+   returning in disguise).                                                     */
+.rail {
+  position: fixed;
+  right: var(--pad);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  /* 15px gap plus the anchors' 4px padding gives a 24px pitch, which is the
+     WCAG 2.2 target-size floor. At 9px the pitch was 18px and failed both the
+     size rule and its spacing exemption. */
+  gap: 15px;
+}
+
+.rail a {
+  display: block;
+  padding: 4px 0; /* a 1px line is not a touch target */
+}
+
+/* Ticks are drawn at full length and scaled down, rather than transitioning
+   `width`: width is a layout property and animating it thrashes layout, even
+   for a hairline. transform-origin pins the right edge so the rail keeps one
+   clean margin and the tick grows leftward into the page. */
+.rail i {
+  display: block;
+  width: 26px;
+  height: 1px;
+  background: var(--ink-45);
+  transform: scaleX(0.46);
+  transform-origin: right center;
+  transition: transform 220ms var(--ease-out), background-color 220ms var(--ease-out);
+}
+
+/* State is carried by length AND strength, never by colour alone. */
+.rail a[aria-current="true"] i {
+  transform: scaleX(1);
+  background: var(--ink);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rail a:hover i {
+    transform: scaleX(0.77);
+    background: var(--ink);
+  }
+}
+
+/* ── Close ─────────────────────────────────────────────────────────────────
+   Contact on the bare field. Nothing follows it.                              */
+.close {
+  min-height: 62dvh;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 26px;
+  padding: calc(var(--pad) * 2) var(--pad) calc(var(--pad) * 3);
+}
+
+.close ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(18px, 3vw, 44px);
+  list-style: none;
+}
+
+.close a {
+  color: inherit;
+  font-size: 14px;
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--ink-45);
+  transition: text-decoration-color 180ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .close a:hover {
+    text-decoration-color: var(--ink);
+  }
+}
+
+/* ── Fallback surfaces ─────────────────────────────────────────────────────
+   error.tsx and not-found.tsx. Same two colours, same family, no drawing: the
+   world holds even when the data does not arrive.                             */
+.fallback {
+  min-height: 100dvh;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 22px;
+  padding: var(--pad);
+  text-align: center;
+}
+
+.fallback p {
+  font-size: clamp(15px, 1.25vw, 18px);
+}
+
+.fallback a,
+.fallback button {
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink-70);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--ink-45);
+  transition: color 180ms var(--ease-out), text-decoration-color 180ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .fallback a:hover,
+  .fallback button:hover {
+    color: var(--ink);
+    text-decoration-color: var(--ink);
+  }
+}
+
+/* ── Motion ────────────────────────────────────────────────────────────────
+   Two motions and no others. Both CSS, neither on the main thread.
+
+   Browsers without scroll-driven animation support, and anyone who asked for
+   reduced motion, get the settled state: a plain vertical sequence, fully
+   legible. No information exists only in an animated state.                   */
 @media (prefers-reduced-motion: no-preference) {
+  /* NO `scroll-behavior: smooth`. It was here and was removed: it is a third
+     motion, which this world does not have, and it broke the rail. Smooth
+     scrolling 8500px from the first tick to the last means the visitor rides
+     through every intervening frame instead of arriving, and the control sits
+     dead for seconds before anything moves. A navigation control that does not
+     move on click is not navigation. */
+
+  /* 1. The plate develops. A cyanotype's native behaviour is exposure: the
+        image appears under light. First frame only, once, on load. */
+  .develop {
+    animation: develop 700ms var(--ease-out) both;
+  }
+
+  @keyframes develop {
+    from {
+      clip-path: inset(0 0 100% 0);
+      opacity: 0;
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+      opacity: 1;
+    }
+  }
+
   @supports (animation-timeline: view()) {
-    .explode {
-      animation: explode linear both;
+    /* 2. The frame advances. The blur is load-bearing rather than decorative:
+          crossfading two line drawings without it reads as two objects
+          overlapping instead of one becoming the next. */
+    .advance {
+      animation: advance linear both;
       animation-timeline: view();
-      animation-range: entry 10% cover 45%;
-    }
-    @keyframes explode {
-      from { transform: translateY(0) scale(0.985); opacity: 0.55; }
-      to   { transform: translateY(var(--dy, 0px)) scale(1); opacity: 1; }
+      animation-range: entry 8% cover 34%;
     }
 
-    /* The childhood half arrives: dashed underlay settling to full weight.
-       In drafting grammar the dashed state means "detail behind something
-       else" — which is the argument, so the notation IS the claim. */
-    .arrive {
-      animation: arrive linear both;
-      animation-timeline: view();
-      animation-range: entry 5% cover 40%;
-    }
-    @keyframes arrive {
-      from { opacity: 0.2; transform: translateX(-6px); }
-      to   { opacity: 1; transform: translateX(0); }
-    }
-
-    .rule-draw {
-      animation: rule-draw linear both;
-      animation-timeline: view();
-      animation-range: entry 0% cover 30%;
-      transform-origin: left center;
-    }
-    @keyframes rule-draw {
-      from { transform: scaleX(0); }
-      to   { transform: scaleX(1); }
+    @keyframes advance {
+      from {
+        opacity: 0;
+        filter: blur(2px);
+        transform: scale(1.02);
+      }
+      to {
+        opacity: 1;
+        filter: blur(0);
+        transform: scale(1);
+      }
     }
   }
 }
 
-a { color: inherit; }
-:focus-visible { outline: 2px solid var(--markup); outline-offset: 3px; }
+/* ── Mobile ────────────────────────────────────────────────────────────────
+   The margin-set caption has no margin to sit in, so the plate centres and the
+   caption goes BENEATH it. The grid rows are explicit on BOTH breakpoints, so
+   the layout never depends on source order: the DOM is plate then caption, the
+   natural order for figure/figcaption, and desktop lifts the caption into the
+   left margin by grid placement alone.                                        */
+@media (max-width: 860px) {
+  .frame--plate {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    justify-items: center;
+    row-gap: 30px;
+  }
 
-::selection { background: var(--markup); color: var(--field); }
+  .frame--plate .plate {
+    grid-column: 1;
+    grid-row: 1;
+    height: auto;
+    width: min(84vw, 460px);
+    margin-right: 0;
+  }
+
+  /* The caption takes the plate's own box rather than the frame's, so their
+     left edges match. Pinning it to the padding instead left the caption flush
+     left against a centred plate: an 8px mismatch at 390px, but 123px at 768px,
+     which is iPad portrait and every half-width laptop window. */
+  .frame--plate .cap {
+    grid-column: 1;
+    grid-row: 2;
+    /* Same width expression as the plate, and centred like it. `justify-self`
+       must be restated: the desktop rule sets `end`, which against a centred
+       plate leaves the caption flush right and the two edges unrelated. */
+    justify-self: center;
+    width: min(84vw, 460px);
+    max-width: none;
+    text-align: left;
+    padding-bottom: 0;
+  }
+
+  /* Four across would be four thumbnails and the line would disappear. */
+  .strip {
+    grid-auto-flow: row;
+    grid-template-columns: 1fr 1fr;
+    grid-auto-columns: auto;
+    justify-content: stretch;
+    gap: 18px;
+  }
+
+  /* A three-plate run folds to 2 + 1, which reads as a layout accident. That
+     matters most on the one frame it applies to: the three childhood plates,
+     whose whole job is to establish the same rule three times. Centring the
+     third at the same size keeps it a repetition rather than an orphan. */
+  .strip[data-n="3"] > :last-child {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: calc(50% - 9px);
+  }
+
+  .frame--run {
+    min-height: auto;
+    padding-block: 12vh;
+  }
+
+  .frame--pair {
+    padding-block: 10vh;
+  }
+
+  /* No margin to enlarge into, so a silent plate matches a captioned one. */
+  .frame--solo .plate {
+    height: auto;
+  }
+
+  .head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  /* Twelve ticks at 9px gaps do not survive a 390px viewport next to content,
+     and the anchors are duplicated by ordinary scrolling. */
+  .rail {
+    display: none;
+  }
+}

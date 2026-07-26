@@ -1,21 +1,22 @@
 import type { Metadata, Viewport } from "next";
-import { Barlow_Condensed, Martian_Mono } from "next/font/google";
+import { Archivo } from "next/font/google";
 import "./globals.css";
 
-// Barlow Condensed: a DIN-lineage condensed grotesque — the lettering standard
-// of technical drawings. Martian Mono: a distinctive monospace for every numeral.
-// Both self-hosted by next/font, so the page makes no external request.
-const letter = Barlow_Condensed({
+/**
+ * One family, self-hosted, so the page makes no external font request.
+ *
+ * Archivo carries a width axis, which is why it can be the only face here: the
+ * name sets in the expanded cut and everything else in the normal one, so the
+ * two registers the site needs come from one file rather than two families.
+ *
+ * The retired world paired a DIN-lineage condensed face with a monospace. Both
+ * were drafting instruments, ISO lettering and a dimension table, and both went
+ * with the drafting. There is no monospace on this site.
+ */
+const archivo = Archivo({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-letter",
-  display: "swap",
-});
-
-const data = Martian_Mono({
-  subsets: ["latin"],
-  weight: ["300", "400"],
-  variable: "--font-data",
+  axes: ["wdth"],
+  variable: "--font-archivo",
   display: "swap",
 });
 
@@ -23,10 +24,10 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://renatodap.me"),
   title: "Renato Prado",
   description:
-    "Software engineer in Indianapolis. Seven self-taught instruments, a tennis court, a camera, and a laptop — drawn as one assembly.",
+    "Lead software engineer in Indianapolis. Seven self-taught instruments, a tennis court, a camera and a laptop, drawn as one sequence.",
   openGraph: {
     title: "Renato Prado",
-    description: "An exploded assembly drawing of one person.",
+    description: "Lead software engineer in Indianapolis, drawn as one sequence.",
     url: "https://renatodap.me",
     siteName: "Renato Prado",
     type: "profile",
@@ -35,13 +36,13 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0C2942",
+  themeColor: "#0b2a45",
   colorScheme: "dark",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${letter.variable} ${data.variable}`}>
+    <html lang="en" className={archivo.variable}>
       <body>{children}</body>
     </html>
   );

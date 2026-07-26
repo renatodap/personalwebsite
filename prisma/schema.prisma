@@ -1,9 +1,9 @@
-// renatodap.me — the content behind an exploded assembly drawing of one person.
+// renatodap.me - a cyanotype plate book of one person in motion.
 //
-// The spine is the childhood/adult pair: every Part may carry an `earlyDrawing`,
-// its counterpart from twenty years ago. One Part deliberately has no adult half
-// (ITEM 00) and one has no early half — that asymmetry IS the argument, so it
-// lives in the data rather than in a special case in the view layer.
+// The unit is the frame, and the order of frames IS the argument, so order is
+// data rather than markup. The old schema modelled a bill of materials (itemNo,
+// qty, material, isAnchor); that world was retired on 2026-07-26 and so are its
+// tables. See DESIGN.md for the world contract.
 
 generator client {
   provider = "prisma-client-js"
@@ -14,97 +14,81 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/// Single row (id = "main"). The title block, and nothing that isn't in it.
+/// Single row (id = "main"). The literal facts, and nothing else.
+///
+/// These exist because 57% of viewing time never leaves the first screen: a
+/// visitor who leaves in five seconds still has to leave knowing who this is.
 model SiteSetting {
   id String @id @default("main")
 
-  // Title-block fields. These are the only literal facts stated above the fold,
-  // and they exist so a five-second visitor still leaves knowing who this is.
-  subjectName     String @default("RENATO PRADO")
-  subjectRole     String @default("LEAD SOFTWARE ENGINEER")
-  subjectLocation String @default("INDIANAPOLIS, IN")
-  subjectMode     String @default("REMOTE")
-  drawingTitle    String @default("GENERAL ASSEMBLY")
-  sheetOf         String @default("1 OF 1")
+  subjectName     String @default("Renato Prado")
+  subjectRole     String @default("Lead software engineer")
+  subjectLocation String @default("Indianapolis")
 
-  email      String @default("")
-  githubUrl  String @default("")
+  email       String @default("")
+  githubUrl   String @default("")
   linkedinUrl String @default("")
-  youtubeUrl String @default("")
-  spotifyUrl String @default("")
+  youtubeUrl  String @default("")
+  spotifyUrl  String @default("")
 
   updatedAt DateTime @updatedAt
 }
 
-/// A component of the assembly, and one row of the bill of materials.
-///
-/// `qty` rule (enforced in the admin, not the schema): a quantity is allowed when
-/// it is a property of a KIND of thing learned — "SELF-TAUGHT INSTRUMENT, QTY 7".
-/// It is banned when it measures throughput, because a number that rises simply
-/// by working more hours reads as bragging.
-model Part {
-  id          String @id @default(cuid())
-  itemNo      String @unique // "00", "01" … 00 is the anchor, see `isAnchor`
-  description String // bill-of-materials line, uppercase, no adjectives
-  qty         String @default("1")
-  material    String @default("")
+/// How a frame is composed. Not derivable from plate count: a two-plate RUN
+/// (serve, tennis) and a two-plate PAIR (the wear frame) are different
+/// components with different scale, snapping and caption rules.
+enum FrameKind {
+  /// One drawing, full viewport height, caption set in the left margin. Snaps.
+  PLATE
 
-  /// Slug of the present-tense drawing: /drawings/detail-<drawing>.svg
+  /// Two to four drawings sized by column width, ~78dvh. Reads as the quiet
+  /// between the big pictures, so it deliberately does not snap.
+  RUN
+
+  /// Two drawings at equal weight, no caption. Reserved for the wear frame,
+  /// which is the emotional peak of the page. Snaps.
+  PAIR
+}
+
+/// One frame of the sequence.
+model Frame {
+  id   String    @id @default(cuid())
+  kind FrameKind @default(PLATE)
+
+  /// Empty is normal and expected: eight of the twelve frames carry no words.
+  /// A newline separates lines; second and later lines render at --ink-70.
+  /// Never captions a childhood plate - the adjacency is the statement, and a
+  /// caption would say the thing the structure is there to imply.
+  caption String @default("") @db.Text
+
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(true)
+
+  plates Plate[]
+
+  @@index([isActive, sortOrder])
+}
+
+/// One drawing inside a frame.
+model Plate {
+  id      String @id @default(cuid())
+  frameId String
+  frame   Frame  @relation(fields: [frameId], references: [id], onDelete: Cascade)
+
+  /// Slug only. Resolves to /drawings/detail-<drawing>.svg
+  ///
+  /// Carries no size or zoom field on purpose. Figure size is normalised in the
+  /// ASSET, by trimming each viewBox to its own artwork, so the renderer only
+  /// ever needs `mask-size: contain` and can never crop a drawing.
   drawing String
 
-  /// Slug of the childhood counterpart. Empty means this part is unpaired —
-  /// present tense only, and it exists to give the paired ones somewhere to land.
-  earlyDrawing String @default("")
+  /// Accessible name, required. A mask-rendered drawing is a background, so the
+  /// SVG's own <title> is never exposed to assistive technology.
+  alt String @default("")
 
-  /// Draughting annotation shown on the early half. Never explanatory prose.
-  earlyNote String @default("AS ORIGINALLY FITTED")
+  sortOrder Int @default(0)
 
-  /// ITEM 00 — the one part with a childhood drawing and NO adult counterpart,
-  /// rendered last, above the title block. Its revision row is deliberately empty.
-  isAnchor Boolean @default(false)
-
-  isActive  Boolean @default(true)
-  sortOrder Int     @default(0)
-
-  @@index([isActive, sortOrder])
-}
-
-/// A magnified detail bubble. Used for the wear detail — the snapped racket and
-/// the broken drumsticks — which is the emotional peak of the sheet.
-model Detail {
-  id        String  @id @default(cuid())
-  label     String // "DETAIL A"
-  scaleNote String  @default("SCALE 2:1")
-  drawing   String
-  isActive  Boolean @default(true)
-  sortOrder Int     @default(0)
-
-  @@index([isActive, sortOrder])
-}
-
-/// The single work story, rendered as three callouts on one drawn part.
-/// Names no client, company, or product — the detail budget is spent on
-/// mechanism, never on the party.
-model WorkNote {
-  id               String @id @default("main")
-  askedFor         String @default("") @db.Text
-  actualConstraint String @default("") @db.Text
-  whatChanged      String @default("") @db.Text
-  drawing          String @default("working")
-  isActive         Boolean @default(true)
-}
-
-/// The timeline, as a drawing revision table. Brazil to the US is a revision.
-/// Mechanical Engineering to Computer Science is a revision.
-model Revision {
-  id          String  @id @default(cuid())
-  rev         String // "A", "B", "—"
-  date        String // display string; periods are fuzzy, so not a Date
-  description String  @default("") @db.Text // deliberately empty for ITEM 00's row
-  isActive    Boolean @default(true)
-  sortOrder   Int     @default(0)
-
-  @@index([isActive, sortOrder])
+  @@index([frameId, sortOrder])
 }
 
 model AdminUser {
