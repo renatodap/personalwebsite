@@ -1,0 +1,115 @@
+// renatodap.me — the content behind an exploded assembly drawing of one person.
+//
+// The spine is the childhood/adult pair: every Part may carry an `earlyDrawing`,
+// its counterpart from twenty years ago. One Part deliberately has no adult half
+// (ITEM 00) and one has no early half — that asymmetry IS the argument, so it
+// lives in the data rather than in a special case in the view layer.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Single row (id = "main"). The title block, and nothing that isn't in it.
+model SiteSetting {
+  id String @id @default("main")
+
+  // Title-block fields. These are the only literal facts stated above the fold,
+  // and they exist so a five-second visitor still leaves knowing who this is.
+  subjectName     String @default("RENATO PRADO")
+  subjectRole     String @default("LEAD SOFTWARE ENGINEER")
+  subjectLocation String @default("INDIANAPOLIS, IN")
+  subjectMode     String @default("REMOTE")
+  drawingTitle    String @default("GENERAL ASSEMBLY")
+  sheetOf         String @default("1 OF 1")
+
+  email      String @default("")
+  githubUrl  String @default("")
+  linkedinUrl String @default("")
+  youtubeUrl String @default("")
+  spotifyUrl String @default("")
+
+  updatedAt DateTime @updatedAt
+}
+
+/// A component of the assembly, and one row of the bill of materials.
+///
+/// `qty` rule (enforced in the admin, not the schema): a quantity is allowed when
+/// it is a property of a KIND of thing learned — "SELF-TAUGHT INSTRUMENT, QTY 7".
+/// It is banned when it measures throughput, because a number that rises simply
+/// by working more hours reads as bragging.
+model Part {
+  id          String @id @default(cuid())
+  itemNo      String @unique // "00", "01" … 00 is the anchor, see `isAnchor`
+  description String // bill-of-materials line, uppercase, no adjectives
+  qty         String @default("1")
+  material    String @default("")
+
+  /// Slug of the present-tense drawing: /drawings/detail-<drawing>.svg
+  drawing String
+
+  /// Slug of the childhood counterpart. Empty means this part is unpaired —
+  /// present tense only, and it exists to give the paired ones somewhere to land.
+  earlyDrawing String @default("")
+
+  /// Draughting annotation shown on the early half. Never explanatory prose.
+  earlyNote String @default("AS ORIGINALLY FITTED")
+
+  /// ITEM 00 — the one part with a childhood drawing and NO adult counterpart,
+  /// rendered last, above the title block. Its revision row is deliberately empty.
+  isAnchor Boolean @default(false)
+
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  @@index([isActive, sortOrder])
+}
+
+/// A magnified detail bubble. Used for the wear detail — the snapped racket and
+/// the broken drumsticks — which is the emotional peak of the sheet.
+model Detail {
+  id        String  @id @default(cuid())
+  label     String // "DETAIL A"
+  scaleNote String  @default("SCALE 2:1")
+  drawing   String
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  @@index([isActive, sortOrder])
+}
+
+/// The single work story, rendered as three callouts on one drawn part.
+/// Names no client, company, or product — the detail budget is spent on
+/// mechanism, never on the party.
+model WorkNote {
+  id               String @id @default("main")
+  askedFor         String @default("") @db.Text
+  actualConstraint String @default("") @db.Text
+  whatChanged      String @default("") @db.Text
+  drawing          String @default("working")
+  isActive         Boolean @default(true)
+}
+
+/// The timeline, as a drawing revision table. Brazil to the US is a revision.
+/// Mechanical Engineering to Computer Science is a revision.
+model Revision {
+  id          String  @id @default(cuid())
+  rev         String // "A", "B", "—"
+  date        String // display string; periods are fuzzy, so not a Date
+  description String  @default("") @db.Text // deliberately empty for ITEM 00's row
+  isActive    Boolean @default(true)
+  sortOrder   Int     @default(0)
+
+  @@index([isActive, sortOrder])
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}

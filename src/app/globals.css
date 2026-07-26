@@ -1,0 +1,135 @@
+@import "tailwindcss";
+
+:root {
+  --field: #0C2942;
+  --field-deep: #081D2F;
+  --line: #EAF2F8;
+  --line-soft: #8FB0C7;
+  --markup: #FF4A2E;
+
+  --w-visible: 1.4px;
+  --w-thin: 0.6px;
+
+  --sheet-pad: clamp(14px, 3.2vw, 42px);
+  --rule: color-mix(in srgb, var(--line) 26%, transparent);
+  --rule-faint: color-mix(in srgb, var(--line) 13%, transparent);
+}
+
+@theme inline {
+  --color-field: var(--field);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-markup: var(--markup);
+  --font-letter: var(--font-letter);
+  --font-data: var(--font-data);
+}
+
+* { box-sizing: border-box; }
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--field);
+  color: var(--line);
+  font-family: var(--font-data), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+/* Drawing lettering — uppercase, open tracking, exactly as a drawing letters it. */
+.letter {
+  font-family: var(--font-letter), system-ui, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-weight: 500;
+}
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ── The drawing itself ─────────────────────────────────────────────
+   SVG as a mask, ink from background-color, so every drawing answers to
+   --line and carries no colour of its own. Cheap: the browser caches the
+   file instead of the DOM carrying 30 KB of path data per drawing.        */
+.dwg {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  background-color: var(--line);
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  -webkit-mask-size: contain;     mask-size: contain;
+  -webkit-mask-position: center;  mask-position: center;
+  /* Each traced mask costs real rasterisation work — measured, not assumed.
+     `paint` isolates the repaint; `strict` would also apply SIZE containment,
+     which makes the box lay out as if it were empty and collapses the
+     aspect-ratio to a sliver. Paint only. */
+  contain: paint;
+}
+
+/* Skip rendering entirely for sections still below the fold. Without this the
+   browser rasterises every mask on the sheet at once, which is slow enough to
+   stall first paint on a mid-range phone. The intrinsic size keeps the
+   scrollbar honest so nothing jumps as sections come into view. */
+main > section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 420px;
+}
+.dwg-soft { background-color: var(--line-soft); }
+.dwg-markup { background-color: var(--markup); }
+
+/* ── The one orchestrated motion ────────────────────────────────────
+   Parts separate along their leader lines as the assembly scrolls through.
+   Pure CSS scroll-driven animation: no JS, no library. Browsers without
+   support render the assembled state — which is also what reduced-motion
+   gets, and which is fully legible on its own.                            */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .explode {
+      animation: explode linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 45%;
+    }
+    @keyframes explode {
+      from { transform: translateY(0) scale(0.985); opacity: 0.55; }
+      to   { transform: translateY(var(--dy, 0px)) scale(1); opacity: 1; }
+    }
+
+    /* The childhood half arrives: dashed underlay settling to full weight.
+       In drafting grammar the dashed state means "detail behind something
+       else" — which is the argument, so the notation IS the claim. */
+    .arrive {
+      animation: arrive linear both;
+      animation-timeline: view();
+      animation-range: entry 5% cover 40%;
+    }
+    @keyframes arrive {
+      from { opacity: 0.2; transform: translateX(-6px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .rule-draw {
+      animation: rule-draw linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 30%;
+      transform-origin: left center;
+    }
+    @keyframes rule-draw {
+      from { transform: scaleX(0); }
+      to   { transform: scaleX(1); }
+    }
+  }
+}
+
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--markup); outline-offset: 3px; }
+
+::selection { background: var(--markup); color: var(--field); }

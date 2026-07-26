@@ -49,3 +49,15 @@ nul
 
 # claude config (optional)
 .claude/
+
+# Brainstorming visual companion
+.superpowers/
+
+# Drawing authoring artifacts — the shipped assets are the traced SVGs
+public/drawings/*.png
+
+# Playwright MCP scratch output
+.playwright-mcp/
+
+# local screenshots
+*.jpeg
