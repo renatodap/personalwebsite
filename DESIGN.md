@@ -2,144 +2,161 @@
 
 <!-- impeccable:design-schema 1 -->
 
-**World: Exploded Assembly.** An orthographic exploded assembly drawing, rendered as a website. Cyanotype ground, white line work, red markup, a title block. Chosen because Renato began in Mechanical Engineering and switched to CS a year in — this is the drawing language of the thing he almost became, used to describe the thing he became instead.
+**World: Plate Sequence.** A cyanotype plate book of one person in motion. Prussian blue ground, warm rag-paper line, one figure at a time, held in a fixed frame that advances.
 
-This file records durable system rules. Tokens marked *(provisional)* settle on first build.
+Chosen because it is the true home of the colour this site already wears. `#0B2A45` + white line has two possible ancestors: **blueprint**, which drags in item numbers, callout balloons, a title block and a bill of materials as a matter of course; and **cyanotype** (Anna Atkins, 1843, the first photographically illustrated book), which is a *photographic* process and has no such vocabulary. A cyanotype plate carries an image and, at most, a caption. Same colour, entirely different obligations.
+
+Fused with **Muybridge's motion studies** — sequential plates of one body doing one thing after another — which is this site's thesis as a historical fact rather than a metaphor.
+
+*Supersedes the Exploded Assembly world (2026-07-25), retired 2026-07-26 at Renato's instruction: "i hate the bom design stuff. thats going too far." That world is the anti-reference for this one; see Prohibitions.*
 
 ---
 
 ## The governing idea
 
-An exploded view separates the parts of one object without turning them into separate objects. That is the whole reason this world was chosen: engineer, musician, and tennis player are **components of one assembly on leader lines**, never three sections competing for a hero slot.
+A plate book makes its argument by **sequence and adjacency**, never by explanation. Put one image after another in a fixed frame and the viewer supplies the connection. That is the entire mechanism, and it is why this world survives the "very simple, very clean" constraint: a plate book has almost nothing in it.
 
-Two consequences bind every decision downstream:
+Three consequences bind every decision downstream:
 
-1. **Nothing is decoration.** Every mark on a technical drawing carries information — a line weight means something, a dash pattern means something, a balloon points at something real. If an element cannot state what it communicates, it is removed. This is what makes the world survive the user's "super simple, super clean" constraint: restraint is native to the form, not imposed on it.
-2. **The drawing must be dry.** The conceit collapses the moment it turns cute. A parts list reading `SELF-TAUGHT INSTRUMENT — QTY 7` works because it is deadpan and literally true. Whimsy, puns, and winking copy are banned.
+1. **The drawing is the display element.** Type never competes with it. There is no large headline anywhere on this site, because the figure is the headline. If a text size would rival the plate for attention, it is wrong.
+2. **Nothing is decoded.** The previous world required a visitor to read `ITEM 00 / QTY 7 / MATERIAL` before being allowed to look at anything. This one requires nothing. A viewer who has never heard the word cyanotype sees a blue page and a white figure and is already fully inside it.
+3. **Adjacency does the talking.** The boy arrives in the slot the man was using, and no caption remarks on it. Anything the structure can imply is never written.
 
 ## Color
 
-**Strategy: Drenched.** The surface *is* the blue. This is a saturated field that owns the whole page, not an accent over a neutral ground. Permitted because the mode is Experience and the brief asked for commitment.
+**Strategy: Drenched, two colours, no accent.** The surface *is* the blue.
 
-Physical scene forcing the choice: a drawing pinned under shop light — a saturated blue field with white line burned into it. Not paper, not a dark UI.
+Physical scene forcing the choice: a contact print in Prussian blue, seen on the paper it was coated on.
 
-| Role | Token | Value *(provisional)* | Use |
+| Role | Token | Value | Use |
 |---|---|---|---|
-| Field | `--field` | `#0C2942` | The ground. Dominant surface. |
-| Field, recessed | `--field-deep` | `#081D2F` | Behind raised sheets; the space parts explode into. |
-| Field, raised | `--field-raise` | `#143A5C` | A sheet lifted off the board. |
-| Line | `--line` | `#EAF2F8` | All line work and body text. Blue-cast white, never pure `#FFF`. |
-| Line, secondary | `--line-soft` | `#8FB0C7` | Dimension lines, extension lines, hidden detail, secondary annotation. |
-| Markup | `--markup` | `#FF4A2E` | **Reserved.** Revision marks, the live-data dimension, the active callout, the one action. Never decorative, never more than ~2% of any viewport. |
+| Field | `--field` | `#0B2A45` | The ground. Every surface on the site. |
+| Ink | `--ink` | `#F4EFE6` | All line work and all text. |
+| Ink, secondary | `--ink-70` | `--ink` at 70% | The role and location line. Second lines of a caption. |
+| Ink, tertiary | `--ink-45` | `--ink` at 45% | Rail ticks in their inactive state. **Never text.** |
 
-`--markup` is a redline pencil, not a brand accent. If it appears on more than one element in a viewport without a reason, that is a bug.
+**There is no third colour.** The retired world reserved a red (`--markup: #FF4A2E`) for revision marks; red is a redline pencil and belongs to drafting, so it is gone. Everything that would reach for an accent uses opacity or full-strength ink instead. Links are ink with an underline. The active rail tick is ink at full strength.
 
-Contrast: `--line` on `--field` is comfortably AA at body size. `--line-soft` is restricted to non-essential annotation and must never carry unique information alone.
+This is a **choice, not a property of the world** — brush-coated cyanotypes are routinely tea-toned to warm brown, so a second hue would not be false to the material. It is excluded because two colours let the drawings own 100% of the visual interest, and because it makes drift structurally impossible.
+
+The ink is **warm** (`#F4EFE6`), not the blue-cast white the retired world used (`#EAF2F8`). In a real cyanotype the white *is* the paper, and paper is warm. This is a two-hex change that makes the page read as a print rather than a screen, and it is load-bearing.
+
+Measured contrast against `--field`, not assumed:
+
+- `--ink` on `--field`: **12.8:1** — AAA at every size.
+- `--ink-70` on `--field`: **7.0:1** — AAA for body text. Safe for the role line at 12.5px.
+- `--ink-45` on `--field`: **3.75:1** — fails AA for text, passes the 3:1 non-text floor (WCAG 1.4.11). Restricted to rail ticks, and the rail's active state is carried by full-strength ink plus width, never by colour alone.
+
+An unlit edge or coating vignette is native to the material and is deliberately **not used**: at these sizes it renders as a gradient, which reads as screen chrome rather than paper.
 
 ## Typography
 
-Faces are chosen as objects from the drawing's own world, not by category association.
+**One family: Archivo**, variable, self-hosted through `next/font`. Its Expanded cut sets the name; the regular cut sets everything else. No second family.
 
-- **Lettering — a DIN-lineage condensed engineering face** *(provisional: D-DIN, or OSIFONT for true ISO 3098 lineage)*. This is the lettering standard of technical drawings themselves. Used for titles, callouts, sheet headings, and the title block. Uppercase with open tracking in labels, exactly as a drawing letters them.
-- **Data — a distinctive monospace** *(provisional: Martian Mono)* for every numeral, dimension, parts-list cell, and revision row. Tabular figures are mandatory; numbers must align in columns.
+The retired world paired a DIN-lineage face with Martian Mono. Both were drafting instruments — ISO lettering and a dimension-table monospace — and both are retired with the drafting. **There is no monospace on this site.** Numbers use Archivo's tabular figures where alignment matters, which is almost nowhere.
 
-**Banned faces**, as training-data defaults regardless of how well they'd read: Fraunces, Playfair, Cormorant, Lora, Crimson, Newsreader, Syne, Space Grotesk, Space Mono, IBM Plex (any), Inter as display, DM Sans/Serif, Outfit, Plus Jakarta Sans, Instrument Sans.
+Type does caption work only. There is no display size. The scale is roughly: name at 12px in the Expanded cut, tracked `0.14em`, uppercase; role and location at 12.5px; captions at `clamp(15px, 1.25vw, 18px)`. Captions are measured to about 27–32 characters, because a caption in a plate book is narrow.
 
-Hierarchy comes from **scale and letterspacing**, not weight ramps — a drawing has essentially one ink weight for lettering and distinguishes by size and spacing. Size jumps are large; there is no 1.2× step anywhere.
+**Banned faces**, as training-data defaults regardless of how well they would read: Fraunces, Instrument Serif, Instrument Sans, Playfair, Cormorant, Lora, Crimson, Newsreader, Syne, Space Grotesk, Space Mono, IBM Plex (any), Inter as display, DM Sans, DM Serif, Outfit, Plus Jakarta Sans. No serif is used here at all; "editorial subject wants a serif" is precisely the association the ban exists to break.
 
-## Line work
+## The plate
 
-Line weight is a semantic system lifted from ISO drafting practice. It is the primary visual grammar and must not be flattened into "borders."
+The unit of this site. A square box carrying one drawing.
 
-| Token | Weight *(provisional)* | Meaning |
+**Render path: `mask-image`, always.** `mask: url(…) center no-repeat` with `background-color: var(--ink)`. The ink stays token-driven, the browser caches the file, and the DOM never carries path data. The retired world reserved an inline-`<svg>` path for per-part animation; nothing in this world animates individual paths, so **inline SVG is not used**. Every drawing is a mask.
+
+**Every plate carries a `--z` zoom factor, and this is mandatory rather than polish.** The traces contain wildly different amounts of empty margin: `camera` is a tight portrait that fills its 1024 box, while `serve`, `graduation` and `peter-pan` are small full-body figures occupying a third of it. Fitting all of them to the same box makes half look accidental. `mask-size: calc(var(--z) * 100%)` sizes past the box and lets the surplus crop.
+
+Measured bands, settled at first build:
+
+| Band | `--z` | Drawings |
 |---|---|---|
-| `--w-visible` | `1.4px` | Visible object edge. The part itself. |
-| `--w-hidden` | `0.8px` dashed | Detail behind something else. |
-| `--w-center` | `0.8px` chain-dash | Axis, symmetry, centerline. |
-| `--w-thin` | `0.6px` | Dimension lines, extension lines, leaders, hatching. |
-| `--w-break` | `1.4px` freehand | A break line where a part continues past the sheet. |
+| Tight portrait | `1.00`–`1.10` | camera, working, webcam-guitar, falls, broken-sticks, medal, first-camera, drums |
+| Mid figure | `1.10`–`1.20` | guitar, bass, keys, filmset, first-guitar, broken-racket, finish, tennis |
+| Small full body | `1.45`–`1.55` | serve, running, graduation, deadlift, brazil, first-racket, peter-pan |
 
-Rules: hairlines never fall below `0.5px` rendered. No shadows, no gradients, no blur, no glow — a drawing has no light source. No filled shapes except hatching and the title block rule. Corners are square; radii appear only where a real part has one.
+`--z` is a content field, editable per frame, because the right value is a judgement about a specific drawing.
+
+A plate is sized by **height** when it stands alone and by **column width** when it sits in a run. Sizing a run by viewport height is the mistake that makes a traced line vanish: at `22vh` the drum kit is nearly invisible, at `1fr` of the measure it holds.
 
 ## Components
 
-The system's own vocabulary. A stock UI component dropped into this world is a lapse.
+The whole vocabulary. There are five things.
 
-- **Callout balloon** — a circled item number on a leader line with a dot or arrow terminator, pointing at a part. The primary navigational and annotational device.
-- **Leader line** — thin, one bend maximum, never crossing another leader. **Links are leader lines.**
-- **Dimension line** — arrow-terminated with extension lines and the value set in a gap in the line. Carries real measurements only.
-- **Title block** — bottom-right, always: drawn by, date, scale, sheet N of M, revision, material. This is the site's footer and metadata.
-- **Parts list / BOM** — item, description, qty, material. Tabular figures, rules between rows, no zebra striping.
-- **Revision table** — rev, date, description. This is the timeline. *ME → CS is a revision entry.*
-- **Sheet tabs** — navigation. Pages are sheets; a new page is sheet N+1.
-- **Detail bubble** — a circled region with a scale note (`DETAIL A — SCALE 2:1`), used to zoom into a fragment.
+- **Plate** — one drawing, full height, with an optional caption set in the margin beside it. The default frame.
+- **Run** — three to four plates in a row, sized by column width, at about `78dvh`. Deliberately shorter than a plate so it reads as the quiet between the big pictures. Folds to two columns under 860px.
+- **Pair** — two plates at equal weight, side by side, no caption. Reserved for the wear frame (the snapped racket and the fistful of broken drumsticks), which is the emotional peak of the page.
+- **Caption** — one to three short sentences, set in the left margin, right-aligned against the plate on desktop so its edge points at the figure. Below the plate on mobile.
+- **Rail** — a column of twelve ticks at the right edge, one per frame, the active one full-strength ink and wider. The close has no tick. This is real navigation and is keyboard operable. It is the only progress affordance; **there is no scroll cue.**
+
+Header: name at top-left, role and location at top-right, one line each, fixed. It exists so a visitor who leaves in five seconds still leaves with the literal facts.
+
+Close: contact links on the bare field, no drawing. Nothing follows it.
 
 ## Layout
 
-The page is a **sheet**, not a scroll of stacked cards. Sheets carry a border rule, a title block, and zone letters/numbers along the margins where useful.
+The page is a **vertical sequence of frames**, not a scroll of stacked sections. Each plate frame is `min-height: 100dvh` and a scroll-snap point. Runs and the close do not snap.
 
-The index of work is a **field of identically sized detail crops** — every crop cut at the same scale from a different piece of work. Equal size makes craft compete before subject does, and lets volume accumulate rather than forcing a curated top three. Selecting a crop grows it outward from its true position until the whole sheet it belongs to stands framed.
+Plates sit **right of centre** with the caption in the left margin. The asymmetry is the composition: a large quiet void on the left, the figure held to the right, the caption's right edge aligned toward it. Never `h-screen`; always `min-h-100dvh`.
 
-Grid: parts float on an implied orthographic axis, not a 12-column web grid. Asymmetry is expected — a drawing arranges around the object, not around the page center.
+Content measure caps at 1360px. Beware `margin-inline: auto` on a grid item — auto margins override the default stretch and size the item to content, which collapses a run of `1fr` columns to nothing.
 
 ## Copy discipline
 
-**Words are rare and expensive.** *(added 2026-07-26, at Renato's instruction: "use words very rarely, only when words are truly needed" and "every single word and comma and millimetre has to serve an exact purpose and contribute to the storytelling.")*
+**Words are rare and expensive.** Six of the twelve frames carry none.
 
-This is a hard constraint, and it is the reason the drawing world fits rather than a coincidence: a technical drawing is nearly wordless by nature. Its labels are terse because a label that could be omitted is noise.
-
-Rules:
-- **A sentence must earn its place against the alternative of a drawing.** If the image already says it, delete the sentence. Nothing is captioned merely because captions are conventional.
-- **No paragraph appears anywhere on Sheet 1.** The bill of materials does the introducing.
-- **No adjectives doing a fact's work.** "Seven, self-taught" over "an accomplished multi-instrumentalist."
-- **The same discipline applies to space.** Every rule, gap, and margin is deliberate; nothing is spaced by default. A millimetre that isn't doing work is the same failure as a word that isn't.
-- **Nothing is stated that the structure can imply.** Specifically: the site never claims playfulness, curiosity, range, or that its subject never grew up. Those are conveyed by what sits next to what, or not at all.
+- **A sentence must earn its place against the alternative of a drawing.** If the image says it, delete the sentence.
+- **Plain first person, short declaratives.** No adjectives doing a fact's work. Renato's own voice is the reference: "I taught myself seven instruments the same way I learn everything else. By starting."
+- **Nothing is stated that the structure can imply.** The site never claims range, curiosity, playfulness, or that its subject never grew up. The childhood plates are never captioned, labelled, dated, or remarked upon.
+- **No em-dashes anywhere in visible copy.** Not in captions, links, alt text, or the header. Use a period, a comma, or a regular hyphen. The em-dash is the single most reliable machine-written tell.
+- **No numbers that measure throughput.** "Seven instruments" describes a method of learning and stays. Counts of applications shipped, clients served or servers run are banned even though every one is true.
+- **Every number carries its mechanism** in the same sentence.
+- **No client, company, product or application names**, in any tense.
 
 ## Imagery
 
-Photography never competes with line work — in practice the site contains **no photographs at all**. Every image is a traced line drawing derived from a real photograph of Renato. There is no hero video *(cut 2026-07-26)*.
+Twenty-three traced line drawings derived from Renato's own photographs, in `public/drawings/`. **All twenty-three are used.** There are no photographs on the site and no stock imagery of any kind.
 
-**The drawings are SVG, not raster.** They were authored as 1024×1024 PNGs and vectorised by `scripts/vectorize_drawings.py` (threshold → potrace → retint). The raster originals are the *authoring* artifact and are not shipped. Result: 22 MB → 0.64 MB, and every drawing became token-driven.
+Each SVG carries `fill="currentColor"`, `viewBox="0 0 1024 1024"`, a `<title>`, and no background of its own, so the ground is always `--field` and the ink is always CSS-supplied. Verified: 23/23, zero baked colours. The 1024px PNG originals are the authoring artifact and are not shipped.
 
-Each SVG carries `fill="currentColor"`, a `viewBox="0 0 1024 1024"`, a `<title>`, and **no background of its own** — so the ground is always the page's `--field` and the ink is always CSS-supplied. Verified: 23/23 files, zero baked colours.
+Five drawings are of Renato as a child: `brazil`, `first-guitar`, `first-racket`, `first-camera`, `peter-pan`. They are drawn at exactly the same ink weight and plate treatment as the adult ones, because the claim is that they are current components of the present person, not history. **Nothing marks them as childhood.**
 
-Two render paths, chosen by context:
-
-- **`mask-image` for the crop field and anywhere many drawings appear at once.** `mask: url(…) center/contain no-repeat` with `background-color: var(--line)`. The colour stays token-driven, the browser caches the file, and the DOM stays light.
-- **Inline `<svg>` only for the few drawings in the assembly itself**, where paths need individual animation (`stroke-dashoffset`) or per-part callout targeting. Inlining is expensive — these traces run ~15–50 KB of path data each — so it is reserved, never the default.
-
-No stock imagery. No generic icon tiles. No gradients or glass standing in where an authored drawing belongs. Icons, where needed, are drawn in the drawing's own grammar.
+`brazil` (the boy with a Brazilian flag) and `falls` (the adult at Iguaçu) are a pair and sit adjacent, uncaptioned. `peter-pan` is the only childhood drawing with no adult counterpart; it is last, and nothing follows it.
 
 ## Motion
 
-**One orchestrated motion for the entire site: the assembly explodes.** On scroll, parts separate along their leader lines and dimension lines draw themselves in. This is the form's native behavior — an exploded view is defined by exploding — not an effect applied to it.
+**Two motions, and no others.**
 
-Everything else is near-still. No scattered hover animations, no scroll-fade on every block, no parallax. A leader line may extend on hover; a callout may fill with `--markup` when active. That is the budget.
+1. **The plate develops.** On first load, the opening plate arrives through a `clip-path: inset()` sweep plus opacity, about 700ms, `cubic-bezier(0.23, 1, 0.32, 1)`. A cyanotype's native behaviour is *exposure*: the image appears under light. This runs once.
+2. **The frame advances.** As a frame enters, opacity rises, a 2px blur clears, and scale settles from `1.02`. The blur is not decoration: crossfading two line drawings without it reads as two objects overlapping rather than one becoming the next.
 
-`prefers-reduced-motion`: the assembled state, held, fully legible. Nothing is hidden behind motion, and no information exists only in an animated state.
+Built with **CSS scroll-driven animations** (`animation-timeline: view()`) over scroll-snap sections. No animation library, no JS scroll listener, nothing on the main thread. `window.addEventListener("scroll")` is banned.
 
-## Live data
+Everything else is still. No hover animation except a link underline and the rail tick. No parallax, no marquee, no per-element scroll-fade.
 
-Some dimensions are **measured continuously rather than drawn once** — running distance, average pace, session count, days since last activity, read from Renato's own fitness database on the same Postgres instance.
-
-Rules, binding:
-- **Running aggregates only.** No weight, resting heart rate, sleep, blood oxygen, macros, hydration, or photographs. This is a taste boundary, not a technical one.
-- Read through a **dedicated read-only role and a single view**, never broad table access.
-- **Cached**, with the last known value baked in as fallback. A fitness-app outage must never degrade this site.
-- Live values render in `--markup` and are labeled as measured, with their as-of time. A number that claims to be live and is stale is worse than a static number.
+`prefers-reduced-motion`, and any browser without scroll-driven animation support, gets the settled state: a plain vertical sequence of drawings and sentences, fully legible. **No information exists only in an animated state.**
 
 ## Prohibitions
 
-Checked against the world's own materials — none of these bans a device the drawing itself uses.
+Each checked against the world's own materials. None of these bans a device a cyanotype plate book actually uses.
 
-- No drop shadows, gradients, glows, or glassmorphism. A drawing has no light source.
-- No rounded card shells. Sheets and parts, not cards.
-- No emoji anywhere. No decorative icon sets.
-- No skill bars, percentage proficiency meters, or technology logo walls.
-- No client, company, product, or application names — anywhere, in any tense. Work is described by mechanism and outcome only.
-- No invented content: no fabricated testimonials, metrics, logos, or imagery. Every number traces to something real, and every number appears with its mechanism.
-- No LLM register. Banned: "passionate about," "cutting-edge," "seamless," "leverage," "delve/dive into," "in today's fast-paced world," "a testament to," "unlock the potential." Vary sentence length deliberately; uniform rhythm is itself a tell.
+**Retired with the old world, and specifically not to return:** item numbers, callout balloons, leader lines, dimension lines, break lines, title blocks, bills of materials, revision tables, sheet tabs, detail bubbles, `SCALE 2:1` notes, ISO line-weight semantics, and any monospace type. These are blueprint furniture. The visitor was being asked to learn a notation before being allowed to look.
+
+**Also banned:**
+
+- No visible frame numbers or `01 / 12` pagination. The rail shows position spatially. A number here would be the item number returning in disguise.
+- No scroll cues: no "Scroll", no arrow, no animated wheel.
+- No drop shadows, gradients, glows, or glassmorphism.
+- No rounded card shells. No cards at all.
+- No emoji. No icon sets; the site needs no icons.
+- No skill bars, proficiency meters, or technology logo walls.
+- No hand-rolled decorative SVG. The twenty-three authored drawings are the imagery; nothing else is drawn.
+- No eyebrow labels above sections. There are no sections.
+- No LLM register: "passionate about", "cutting-edge", "seamless", "leverage", "delve into", "a testament to", "unlock the potential".
+- No invented content. Every number traces to something real.
 
 ## Admin
 
-The `/admin` surface is the same world at **working weight** — mode is Operate, so density and scanability outrank expression. Same tokens, same faces, same line-weight semantics; the explode motion does not appear. It edits content only. Layout and design are code and are not editable, chosen deliberately so the design cannot drift.
+`/admin` is not yet built. When it is: same two colours, same family, working weight, mode is Operate, so density and scanability outrank expression. Neither motion appears there.
+
+It edits **content only** — the frames, their order, their captions, their `--z`, and the header and contact strings. Layout and design are code and are not editable, chosen deliberately so the design cannot drift.
