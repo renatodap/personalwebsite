@@ -122,7 +122,12 @@ export function Melt({
       }
 
       const prev = new Float32Array(n * 2);
-      let seeded = false;
+
+
+      /* Seeded at t = 0 BEFORE the first painted frame. Without this the first
+         frame has no previous position, draws nothing, and the source figure is
+         gone for a frame before any ink exists, which is most of why it read as
+         "constructing out of nowhere". */
 
       const at = (i: number, t: number, out: [number, number]) => {
         // Renormalised so every particle still completes exactly at t = 1.
@@ -149,6 +154,13 @@ export function Melt({
 
       const p: [number, number] = [0, 0];
 
+      for (let i = 0; i < n; i++) {
+        at(i, 0, p);
+        prev[i * 2] = (p[0] / 100) * w;
+        prev[i * 2 + 1] = (p[1] / 100) * h;
+      }
+
+
       const frame = (now: number) => {
         const t = Math.min(1, (now - started) / duration);
 
@@ -163,19 +175,24 @@ export function Melt({
           const x = (p[0] / 100) * w;
           const y = (p[1] / 100) * h;
 
-          if (seeded) {
-            // The streak IS the particle's velocity. Drawn as one batched path
-            // so the whole cloud is a single stroke call per frame.
-            ctx.moveTo(prev[i * 2], prev[i * 2 + 1]);
-            ctx.lineTo(x, y);
-          }
+          // The streak IS the particle's velocity, and it is drawn from the
+          // previous position, so at rest the streak has zero length and the
+          // cloud is exactly the drawing. That is what makes the ink RESOLVE
+          // into the figure rather than be replaced by it.
+          ctx.moveTo(prev[i * 2], prev[i * 2 + 1]);
+          ctx.lineTo(x, y);
+
+          // A dot at the head, so a particle that has stopped is still ink. A
+          // pure streak vanishes the instant it stops, which left the last
+          // frames nearly empty.
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + 0.01, y);
 
           prev[i * 2] = x;
           prev[i * 2 + 1] = y;
         }
 
-        if (seeded) ctx.stroke();
-        seeded = true;
+        ctx.stroke();
 
         if (t < 1 && !cancelled) raf = requestAnimationFrame(frame);
         else if (!cancelled) done.current();

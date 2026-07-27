@@ -174,8 +174,9 @@ body {
   opacity: 0.5;
 }
 
-.mark[data-weight="far"] {
-  opacity: 0.14;
+.mark[data-weight="gone"] {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* While its ink is in the air, the mask is not drawn at all: the canvas is
@@ -184,6 +185,53 @@ body {
 .mark[data-weight="melting"] {
   opacity: 0;
   pointer-events: none;
+}
+
+/* ── Orbits ────────────────────────────────────────────────────────────────
+   A satellite is placed by a radius and an angle around its hero, not by an
+   authored coordinate, which makes non-overlap true by construction: one ring
+   per aspect, even angles, radius scaled to clear the hero.
+
+   The ring is a SQUARE box centred on the hero, so rotating it sweeps a circle
+   rather than an ellipse. The drawing counter-rotates at the same rate, so it
+   travels round the ring while staying upright. Very slow on purpose: the field
+   is never quite still, and you only notice if you stop and look.             */
+.ring {
+  position: absolute;
+  left: calc(var(--wx) * 1%);
+  top: calc(var(--wy) * 1%);
+  height: calc(var(--wr) * 2%);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  pointer-events: none;
+  animation: turn var(--spin) linear infinite;
+  animation-delay: calc(var(--turn) * var(--spin) * -1);
+  opacity: 0;
+  transition: opacity 300ms var(--ease-out);
+}
+
+.ring[data-weight="near"],
+.ring[data-weight="on"],
+.ring[data-weight="melting"] {
+  opacity: 1;
+}
+
+.orbiter {
+  left: 50%;
+  top: 0;
+  height: calc(var(--oh) * 1%);
+  pointer-events: auto;
+  animation: turn var(--spin) linear infinite reverse;
+  animation-delay: calc(var(--turn) * var(--spin));
+}
+
+/* The orbiter's height is a percentage of its RING, not of the stage, so it is
+   restated against the canvas by the ring being square: a square box's
+   percentage height and width agree, which is the whole reason for it. */
+@keyframes turn {
+  to {
+    rotate: 360deg;
+  }
 }
 
 /* ── The melt ──────────────────────────────────────────────────────────────
@@ -212,10 +260,7 @@ body {
 
 /* The five childhood drawings. Invisible standing back, present standing close,
    beside the adult they answer, with nothing written about it. */
-.mark[data-weight="deep"] {
-  opacity: 0;
-  pointer-events: none;
-}
+
 
 @media (hover: hover) and (pointer: fine) {
   .mark:hover {
@@ -282,9 +327,9 @@ body {
   transition: opacity 240ms var(--ease-out);
 }
 
-.world[data-view="close"] .say {
+.say[data-on] {
   opacity: 1;
-  transition-delay: 380ms;
+  transition-delay: 420ms;
 }
 
 .say .tag {

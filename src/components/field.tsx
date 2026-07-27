@@ -3,12 +3,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   ANCHOR,
+  ASPECT_OF,
   CLOSE,
   DIRECTIONS,
-  PLACE,
+  HERO,
+  ORBIT,
+  ORBIT_SECONDS,
   REST,
+  RING_OF_HERO,
   TALL_QUERY,
   cameraFor,
+  spotOf,
   toward,
 } from "@/lib/layout";
 import { RATIO } from "@/lib/ratios";
@@ -16,29 +21,29 @@ import type { Aspect } from "@/lib/content";
 import { Melt } from "@/components/melt";
 
 /**
- * One space, one camera.
+ * One space, one camera, three levels.
  *
- * Zooming in does not swap screens. It moves a camera over the same canvas, so
- * what you see close up is exactly what you saw far away, larger, in its own
- * place, with its neighbours still around it. Every drawing is a destination,
- * and from any of them you can keep going left, right, up or down until you are
- * genuinely at the edge of the field.
+ *   FAR    the five heroes alone. Nothing else is drawn.
+ *   ASPECT standing in front of one hero: ITS drawings appear, orbiting it, and
+ *          its sentences appear. No other aspect is on screen at all; the arrows
+ *          at the edges are the only sign there is anywhere else to go.
+ *   NEAR   standing in front of one of those smaller drawings. No sentences: the
+ *          words belong to the aspect, not to each drawing.
  *
- * WHY NOT THE VIEW TRANSITIONS API. It cannot be interrupted or retargeted once
- * running, and a camera you cannot redirect mid-flight is not a camera. It also
- * animates bitmap snapshots, which across this much scale is exactly the
- * softness the design works to avoid. Research:
- * docs/research/2026-07-26-zoomable-montage-research.md.
+ * Arrows and swipe move between the five aspects ONLY. A smaller drawing is
+ * reached by clicking it, which is a different intent and gets a different
+ * gesture.
  *
- * WHY NOT FLIP. It needs a layout read per move to compute what one arithmetic
- * expression in layout.ts already knows.
+ * The camera is a CSS transform animated with the Web Animations API. Not the
+ * View Transitions API, which cannot be interrupted or retargeted, and a camera
+ * you cannot redirect mid-flight is not a camera.
  */
 
-const FLIGHT = 700;
+const FLIGHT = 720;
 const EASE = "cubic-bezier(0.22, 1, 0.32, 1)";
 const REDUCED = "(prefers-reduced-motion: reduce)";
 const SWIPE = 40;
-const MELT = 820;
+const MELT = 900;
 
 export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactNode }) {
   const [at, setAt] = useState<string | null>(null);
@@ -54,28 +59,18 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
   const painted = useRef(false);
   const was = useRef<string | null>(null);
 
-  /** Every drawing, with the aspect it belongs to and where it stands. */
-  const world = useMemo(
-    () =>
-      aspects.flatMap((a) =>
-        a.marks
-          .filter((m) => PLACE[m.drawing])
-          .map((m) => ({ ...m, aspect: a.id, place: PLACE[m.drawing] })),
-      ),
-    [aspects],
-  );
+  const alt = useMemo(() => {
+    const m: Record<string, string> = {};
+    for (const a of aspects) for (const k of a.marks) m[k.drawing] = k.alt;
+    return m;
+  }, [aspects]);
 
-  const here = world.find((m) => m.drawing === at) ?? null;
-  const aspect = here ? aspects.find((a) => a.id === here.aspect) ?? null : null;
+  const set: "wide" | "tall" = tall ? "tall" : "wide";
+  const isHero = (d: string) => HERO[ASPECT_OF[d]]?.drawing === d;
 
-  const spotOf = useCallback(
-    (drawing: string) => (tall ? PLACE[drawing]?.tall : PLACE[drawing]?.wide),
-    [tall],
-  );
+  const openAspect = at ? ASPECT_OF[at] : null;
+  const aspect = openAspect ? aspects.find((a) => a.id === openAspect) ?? null : null;
 
-  /* Which arrangement is on screen. Keyed on the canvas's own proportion rather
-     than on width, because the composition is a shape, not a breakpoint: a tall
-     narrow window wants the tall arrangement whatever its pixel width. */
   useEffect(() => {
     const mq = window.matchMedia(TALL_QUERY);
     const sync = () => setTall(mq.matches);
@@ -84,50 +79,47 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
     return () => mq.removeEventListener("change", sync);
   }, []);
 
-  /* The URL is the state, so the phone's back gesture, the browser back button
-     and a shared link all do the obvious thing. */
+  /* The URL is the state, so back gestures and shared links behave. */
   useEffect(() => {
     const fromHash = () => {
       const id = window.location.hash.slice(1);
-      setAt(PLACE[id] ? id : null);
+      setAt(ASPECT_OF[id] ? id : null);
     };
     fromHash();
     window.addEventListener("popstate", fromHash);
     return () => window.removeEventListener("popstate", fromHash);
   }, []);
 
-  const target = useMemo(() => {
-    const spot = at ? spotOf(at) : null;
-    if (!spot) return REST;
-    return cameraFor(spot, tall ? ANCHOR.tall : ANCHOR.wide, tall ? CLOSE.tall : CLOSE.wide);
-  }, [at, spotOf, tall]);
+  const target = useMemo(
+    () => (at ? cameraFor(spotOf(at, set), ANCHOR[set], CLOSE[set]) : REST),
+    [at, set],
+  );
 
   /* The flight, and the ink that flows with it. */
   useEffect(() => {
     const el = stage.current;
     if (!el) return;
 
-    // Moving between two drawings melts one into the other. Arriving from the
-    // wide view, or leaving for it, does not: there is no single figure being
-    // left behind, so there is nothing to come apart.
     const previous = was.current;
     was.current = at;
-    const between = previous !== null && at !== null && previous !== at;
+
+    // The melt is for the five, and only the five. Renato, 2026-07-27: "its only
+    // between the main ones that this transition should work perfectly". Moving
+    // into or out of a smaller drawing is a camera move and nothing else.
+    const between =
+      previous !== null && at !== null && previous !== at && isHero(previous) && isHero(at);
     const still = window.matchMedia(REDUCED).matches;
     setMelt(between && !still ? { from: previous, to: at } : null);
 
-    // First paint, and any change of arrangement, land without a flight: there
-    // is nothing to be continuous with.
     if (!painted.current) {
       painted.current = true;
       el.style.transform = target;
       return;
     }
 
-    // WCAG 2.3.3 names zooming specifically, and a zoom covering a large part of
-    // the screen is the motion most likely to cause vestibular symptoms. Reduced
-    // motion gets no camera movement at all, and the CSS crossfades instead.
-    if (window.matchMedia(REDUCED).matches) {
+    // WCAG 2.3.3 names zooming specifically. Reduced motion gets no camera
+    // movement at all, not a faster one.
+    if (still) {
       camera.current?.cancel();
       softening.current?.cancel();
       camera.current = null;
@@ -135,20 +127,19 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
       return;
     }
 
-    // Retarget rather than restart: commit where the camera actually is, cancel,
-    // and let the next animation infer its start from that. Cross the field in
-    // five presses and it chases, never snaps.
+    // Retarget rather than restart: commit where the camera is, cancel, and let
+    // the next animation infer its start from there.
     if (camera.current) {
       try {
         camera.current.commitStyles();
       } catch {
-        /* not rendered; the inline transform below still holds */
+        /* not rendered; the inline transform still holds */
       }
       camera.current.cancel();
     }
 
     const flight = el.animate([{ transform: target }], {
-      duration: FLIGHT,
+      duration: between ? MELT : FLIGHT,
       easing: EASE,
       fill: "forwards",
     });
@@ -157,11 +148,10 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
     flight.finished
       .then(() => {
         if (camera.current !== flight) return;
-        // The crux. A scale animation is NOT re-rastered while it runs, so every
-        // drawing is soft for the whole flight. Committing the final transform
-        // makes it an ordinary scripted style, which IS re-rastered, so the
-        // settled field is sharp. (`will-change: transform` would pin the raster
-        // forever and is banned outright.)
+        // A scale animation is not re-rastered while it runs, so everything is
+        // soft for the whole flight. Committing the final transform makes it an
+        // ordinary scripted style, which IS re-rastered. (`will-change:
+        // transform` would pin the raster forever and is banned.)
         try {
           flight.commitStyles();
         } catch {
@@ -170,25 +160,20 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
         flight.cancel();
         camera.current = null;
       })
-      .catch(() => {
-        /* cancelled by a retarget */
-      });
+      .catch(() => {});
 
-    // Blur is not decoration. It hides the interpolation artifacts of an
-    // un-re-rastered scale, and it is already this site's rule that crossing
-    // between two line drawings without it reads as two objects overlapping
-    // rather than one becoming the next.
+    // Blur hides the interpolation of an un-re-rastered scale. Suppressed during
+    // a melt: the ink is already carrying the transition, and blurring it too
+    // turns the streaks into fog.
     softening.current?.cancel();
-    softening.current = el.animate(
-      [{ filter: "blur(0px)" }, { filter: "blur(2.4px)", offset: 0.42 }, { filter: "blur(0px)" }],
-      { duration: FLIGHT, easing: "linear" },
-    );
+    if (!between) {
+      softening.current = el.animate(
+        [{ filter: "blur(0px)" }, { filter: "blur(2.2px)", offset: 0.42 }, { filter: "blur(0px)" }],
+        { duration: FLIGHT, easing: "linear" },
+      );
+    }
   }, [target, at]);
 
-  /* A view changed without the document changing, so the two things a real
-     navigation does for free have to be done by hand: move focus, and announce.
-     Both, because focus alone is not reliably announced by NVDA in Firefox or
-     VoiceOver in Safari. */
   useEffect(() => {
     if (at) caption.current?.focus({ preventScroll: true });
   }, [at]);
@@ -204,53 +189,46 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
     [at],
   );
 
-  const close = useCallback(() => {
+  /** Up one level: a smaller drawing returns to its hero, a hero to the field. */
+  const back = useCallback(() => {
     if (!at) return;
+    const up = isHero(at) ? null : HERO[ASPECT_OF[at]].drawing;
     if (window.location.hash.slice(1) === at) window.history.back();
-    else setAt(null);
-  }, [at]);
+    else go(up);
+  }, [at, go]);
 
-  /** Everything currently reachable. Standing back, the five childhood drawings
-   *  are not there to be reached; standing close, they are. */
-  const reachable = useMemo(
-    () => world.filter((m) => (at ? true : !m.place.deep)),
-    [world, at],
-  );
-
-  const nextTo = useCallback(
-    (from: string, dir: [number, number]) => {
-      const origin = spotOf(from);
-      if (!origin) return null;
+  /** Arrows move between the FIVE, never into a smaller drawing. */
+  const nextAspect = useCallback(
+    (dir: [number, number]) => {
+      const fromId = at ? ASPECT_OF[at] : null;
+      if (!fromId) return null;
       return toward(
-        origin,
-        reachable.filter((m) => m.drawing !== from).map((m) => ({ id: m.drawing, spot: spotOf(m.drawing)! })),
+        HERO[fromId][set],
+        Object.entries(HERO)
+          .filter(([id]) => id !== fromId)
+          .map(([, h]) => ({ id: h.drawing, spot: h[set] })),
         dir,
       );
     },
-    [reachable, spotOf],
+    [at, set],
   );
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") return close();
-
-      const dir = { ArrowLeft: "left", ArrowRight: "right", ArrowUp: "up", ArrowDown: "down" }[e.key];
-      if (!dir) return;
-
-      const from = at ?? (document.activeElement as HTMLElement)?.dataset?.mark;
-      if (!from) return;
-      const next = nextTo(from, DIRECTIONS[dir]);
+      if (e.key === "Escape") return back();
+      const dir = { ArrowLeft: "left", ArrowRight: "right", ArrowUp: "up", ArrowDown: "down" }[
+        e.key
+      ];
+      if (!dir || !at) return;
+      const next = nextAspect(DIRECTIONS[dir]);
       if (!next) return;
       e.preventDefault();
-      if (at) go(next);
-      else marks.current[next]?.focus({ preventScroll: true });
+      go(next);
     };
-
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [at, close, nextTo, go]);
+  }, [at, back, nextAspect, go]);
 
-  /* Touch has no arrow keys and no hover, so the same four moves are a swipe. */
   const swipe = useRef<{ x: number; y: number } | null>(null);
   const onDown = (e: React.PointerEvent) => {
     if (e.pointerType === "mouse") return;
@@ -260,78 +238,117 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
     const start = swipe.current;
     swipe.current = null;
     if (!start || !at) return;
-
     const dx = e.clientX - start.x;
     const dy = e.clientY - start.y;
     if (Math.hypot(dx, dy) < SWIPE) return;
-
-    // Swiping left means "bring me what is on the right", the way a map moves.
     const dir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? "right" : "left") : dy < 0 ? "down" : "up";
-    const next = nextTo(at, DIRECTIONS[dir]);
+    const next = nextAspect(DIRECTIONS[dir]);
     if (next) go(next);
-  };
-
-  /** on: full ink. dim: field texture. mute: another aspect while one is read. */
-  const weight = (m: (typeof world)[number]) => {
-    // While the ink is in the air, neither end of the melt is drawn: the canvas
-    // is holding both of them, and painting the mask underneath would show the
-    // figure arriving before its ink does.
-    if (melt && (m.drawing === melt.from || m.drawing === melt.to)) return "melting";
-    if (m.drawing === at) return "on";
-    if (at) return here && m.aspect === here.aspect ? "near" : "far";
-    if (m.place.deep) return "deep";
-    if (!hover) return "dim";
-    return m.aspect === hover ? "on" : "mute";
   };
 
   const exits = useMemo(() => {
     if (!at) return [];
     return (["left", "right", "up", "down"] as const)
       .map((dir) => {
-        const next = nextTo(at, DIRECTIONS[dir]);
+        const next = nextAspect(DIRECTIONS[dir]);
         return next ? { dir, drawing: next } : null;
       })
-      .filter((e): e is { dir: "left" | "right" | "up" | "down"; drawing: string } => e !== null);
-  }, [at, nextTo]);
+      .filter((x): x is { dir: "left" | "right" | "up" | "down"; drawing: string } => x !== null);
+  }, [at, nextAspect]);
+
+  const weight = (drawing: string) => {
+    if (melt && (drawing === melt.from || drawing === melt.to)) return "melting";
+    if (drawing === at) return "on";
+    // A satellite exists only inside its own aspect, and no other aspect is on
+    // screen at all once you are in one. Renato, 2026-07-27: "once im in camera
+    // i cant see anything music, just arrows to move left right or up".
+    if (openAspect) return ASPECT_OF[drawing] === openAspect ? "near" : "gone";
+    return isHero(drawing) ? (!hover || hover === ASPECT_OF[drawing] ? "dim" : "mute") : "gone";
+  };
 
   return (
     <div className="world" data-view={at ? "close" : "far"} onPointerDown={onDown} onPointerUp={onUp}>
-      <div className="canvas" data-tall={tall ? "" : undefined}>
+      <div className="canvas">
         <div className="stage" ref={stage}>
-          {world.map((m, i) => {
-            const url = `url(/drawings/detail-${m.drawing}.svg)`;
+          {/* The five. The whole of the far view. */}
+          {Object.entries(HERO).map(([id, h], i) => (
+            <button
+              key={h.drawing}
+              type="button"
+              data-weight={weight(h.drawing)}
+              ref={(el) => {
+                marks.current[h.drawing] = el;
+              }}
+              className="mark"
+              style={
+                {
+                  "--r": RATIO[h.drawing],
+                  "--wx": h.wide.x,
+                  "--wy": h.wide.y,
+                  "--wh": h.wide.h,
+                  "--tx": h.tall.x,
+                  "--ty": h.tall.y,
+                  "--th": h.tall.h,
+                  "--i": i,
+                } as React.CSSProperties
+              }
+              onPointerEnter={() => setHover(id)}
+              onPointerLeave={() => setHover(null)}
+              onFocus={() => setHover(id)}
+              onBlur={() => setHover(null)}
+              onClick={() => go(h.drawing)}
+            >
+              <span className="sr-only">
+                {`${aspects.find((a) => a.id === id)?.title ?? id}. ${alt[h.drawing] ?? ""}`}
+              </span>
+            </button>
+          ))}
+
+          {/* Everything else, orbiting its hero. Distinct angles on one ring make
+              non-overlap true by construction rather than by a solver. The turn
+              is a CSS animation, so it costs no JavaScript, and the drawing
+              counter-rotates so it stays upright while it travels. */}
+          {Object.entries(ORBIT).map(([drawing, o]) => {
+            const h = HERO[o.aspect];
+            const w = weight(drawing);
             return (
-              <button
-                key={m.drawing}
-                type="button"
-                data-mark={m.drawing}
-                data-weight={weight(m)}
-                ref={(el) => {
-                  marks.current[m.drawing] = el;
-                }}
-                className="mark"
+              <span
+                key={drawing}
+                className="ring"
+                data-weight={w}
                 style={
                   {
-                    "--r": RATIO[m.drawing],
-                    "--wx": m.place.wide.x,
-                    "--wy": m.place.wide.y,
-                    "--wh": m.place.wide.h,
-                    "--tx": m.place.tall.x,
-                    "--ty": m.place.tall.y,
-                    "--th": m.place.tall.h,
-                    "--i": i,
-                    maskImage: url,
-                    WebkitMaskImage: url,
+                    "--wx": h.wide.x,
+                    "--wy": h.wide.y,
+                    "--wr": h.wide.h * RING_OF_HERO,
+                    "--tx": h.tall.x,
+                    "--ty": h.tall.y,
+                    "--tr": h.tall.h * RING_OF_HERO,
+                    "--turn": o.turn,
+                    "--spin": `${ORBIT_SECONDS}s`,
                   } as React.CSSProperties
                 }
-                onPointerEnter={() => setHover(m.aspect)}
-                onPointerLeave={() => setHover(null)}
-                onFocus={() => setHover(m.aspect)}
-                onBlur={() => setHover(null)}
-                onClick={() => go(m.drawing)}
               >
-                <span className="sr-only">{m.alt}</span>
-              </button>
+                <button
+                  type="button"
+                  className="mark orbiter"
+                  data-weight={w}
+                  ref={(el) => {
+                    marks.current[drawing] = el;
+                  }}
+                  style={
+                    {
+                      "--r": RATIO[drawing],
+                      "--oh": o.h,
+                      "--turn": o.turn,
+                      "--spin": `${ORBIT_SECONDS}s`,
+                    } as React.CSSProperties
+                  }
+                  onClick={() => go(drawing)}
+                >
+                  <span className="sr-only">{alt[drawing] ?? drawing}</span>
+                </button>
+              </span>
             );
           })}
 
@@ -340,23 +357,20 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
               key={`${melt.from}->${melt.to}`}
               from={melt.from}
               to={melt.to}
-              fromSpot={spotOf(melt.from)!}
-              toSpot={spotOf(melt.to)!}
+              fromSpot={spotOf(melt.from, set)}
+              toSpot={spotOf(melt.to, set)}
               duration={MELT}
               onDone={() => setMelt(null)}
             />
           ) : null}
         </div>
 
-        {/* The five labels sit over the five largest drawings and never move
-            with the camera. They are the navigation: the interaction is not
-            discoverable otherwise, and a hover-only affordance is not an
-            affordance on a phone. */}
+        {/* The five labels. Visible in the far view only: the interaction is not
+            discoverable otherwise, and a phone has no hover. */}
         <div className="tags" aria-hidden="true">
           {aspects.map((a) => {
-            const lead = a.marks.find((m) => m.hero && PLACE[m.drawing]);
-            if (!lead) return null;
-            const p = PLACE[lead.drawing];
+            const h = HERO[a.id];
+            if (!h) return null;
             return (
               <span
                 key={a.id}
@@ -364,12 +378,12 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
                 data-lit={!at && (!hover || hover === a.id) ? "" : undefined}
                 style={
                   {
-                    "--wx": p.wide.x,
-                    "--wy": p.wide.y,
-                    "--wh": p.wide.h,
-                    "--tx": p.tall.x,
-                    "--ty": p.tall.y,
-                    "--th": p.tall.h,
+                    "--wx": h.wide.x,
+                    "--wy": h.wide.y,
+                    "--wh": h.wide.h,
+                    "--tx": h.tall.x,
+                    "--ty": h.tall.y,
+                    "--th": h.tall.h,
                   } as React.CSSProperties
                 }
               >
@@ -380,10 +394,10 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
         </div>
       </div>
 
-      {/* The words for wherever you are standing. They do not replace the view;
-          they arrive beside it. */}
+      {/* The words belong to the aspect, so they show at the aspect's own level
+          and not when you have gone further in to one of its drawings. */}
       <div className="says">
-        <p className="say" tabIndex={-1} ref={caption}>
+        <p className="say" data-on={at && isHero(at) ? "" : undefined} tabIndex={-1} ref={caption}>
           {aspect ? (
             <>
               <span className="tag">{aspect.title}</span>
@@ -395,9 +409,6 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
         </p>
       </div>
 
-      {/* Where you can go from here. A zoomable interface loses people when the
-          exits are invisible, so they are named, and they are also the visible
-          form of the arrow keys and the swipe. */}
       <nav className="exits" aria-label="Nearby" inert={at === null}>
         {exits.map((e) => (
           <button
@@ -413,14 +424,14 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
       </nav>
 
       <p className="sr-only" aria-live="polite">
-        {here ? `${aspect?.title}. ${here.alt}` : ""}
+        {at ? `${aspect?.title ?? ""}. ${alt[at] ?? ""}` : ""}
       </p>
 
       <div className="bar">
         <div className="links" inert={at !== null}>
           {contact}
         </div>
-        <button type="button" className="back" onClick={close} inert={at === null}>
+        <button type="button" className="back" onClick={back} inert={at === null}>
           Back
         </button>
       </div>

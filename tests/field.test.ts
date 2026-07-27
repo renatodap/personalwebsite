@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import { ASPECTS, SETTINGS } from "../src/content/site.mjs";
 import { checkCopy } from "../prisma/copy-rules.mjs";
-import { PLACE, ANCHOR, CANVAS, CLOSE, boxOf, cameraFor, toward, DIRECTIONS } from "../src/lib/layout";
+import { HERO, ORBIT, ASPECT_OF, ANCHOR, CANVAS, CLOSE, ORBIT_X, RING_OF_HERO, boxOf, cameraFor, spotOf, toward, DIRECTIONS } from "../src/lib/layout";
 import { RATIO } from "../src/lib/ratios";
 import { readRatios, render } from "../scripts/ratios.mjs";
 
@@ -14,7 +14,7 @@ type Aspect = { id: string; title: string; lines: string[]; marks: Mark[] };
 const aspects = ASPECTS as Aspect[];
 const marks = aspects.flatMap((a) => a.marks);
 const heroes = marks.filter((m) => m.hero);
-const onField = marks.filter((m) => PLACE[m.drawing]);
+const onField = marks.filter((m) => ASPECT_OF[m.drawing]);
 
 const DRAWINGS = join(process.cwd(), "public", "drawings");
 const onDisk = readdirSync(DRAWINGS)
@@ -38,18 +38,12 @@ describe("coverage", () => {
     }
   });
 
-  it("hides the childhood drawings until the camera comes in close", () => {
-    // They are the payoff for going in, which is the whole reason the wide view
-    // is all recent. `deep` is what keeps them invisible standing back; losing
-    // it would give the argument away in the first second.
-    for (const d of ["brazil", "peter-pan", "first-guitar", "first-racket", "first-camera"]) {
-      expect(PLACE[d]?.deep, `${d} must be deep`).toBe(true);
-    }
-  });
-
-  it("places all twenty-three, and shows eighteen standing back", () => {
+  it("shows only the five standing back", () => {
+    // Renato, 2026-07-27: "on the top screen only show the main ones". Everything
+    // else is an orbiter and does not exist until you are inside its aspect.
     expect(onField).toHaveLength(23);
-    expect(onField.filter((m) => !PLACE[m.drawing].deep)).toHaveLength(18);
+    expect(Object.keys(HERO)).toHaveLength(5);
+    expect(Object.keys(ORBIT)).toHaveLength(18);
   });
 });
 
@@ -60,10 +54,9 @@ describe("aspects", () => {
     for (const a of aspects) {
       const own = a.marks.filter((m) => m.hero);
       expect(own, `${a.id} heroes`).toHaveLength(1);
-      // The hero carries the aspect's label, so it has to be visible standing
-      // back or the aspect has no name anywhere.
-      expect(PLACE[own[0].drawing], `${a.id} hero placement`).toBeDefined();
-      expect(PLACE[own[0].drawing].deep, `${a.id} hero must not be deep`).toBeUndefined();
+      // The content's hero and the geometry's hero must be the same drawing, or
+      // the label names one figure and the camera flies to another.
+      expect(HERO[a.id]?.drawing, `${a.id} hero`).toBe(own[0].drawing);
     }
   });
 
@@ -90,9 +83,26 @@ describe("composition", () => {
   ];
 
   for (const set of SETS) {
-    it(`keeps every ${set.name} drawing inside the canvas`, () => {
-      for (const m of onField) {
-        const box = boxOf(PLACE[m.drawing][set.key], m.drawing, set.ratio);
+    it(`keeps every ${set.name} drawing inside the canvas, through a whole turn`, () => {
+      // The ring ROTATES, so every orbiter eventually reaches every point on it.
+      // Checking only its starting angle would pass a ring that swings off the
+      // top of the canvas thirty seconds later.
+      const extremes = (drawing: string) => {
+        if (!ORBIT[drawing]) return [spotOf(drawing, set.key)];
+        const h = HERO[ASPECT_OF[drawing]];
+        const r = h[set.key].h * RING_OF_HERO;
+        const o = ORBIT[drawing];
+        return [
+          { x: h[set.key].x + r * ORBIT_X[set.key], y: h[set.key].y, h: o.h },
+          { x: h[set.key].x - r * ORBIT_X[set.key], y: h[set.key].y, h: o.h },
+          { x: h[set.key].x, y: h[set.key].y + r, h: o.h },
+          { x: h[set.key].x, y: h[set.key].y - r, h: o.h },
+        ];
+      };
+
+      for (const m of onField)
+      for (const spot of extremes(m.drawing)) {
+        const box = boxOf(spot, m.drawing, set.ratio);
         expect(box.left, `${m.drawing} left`).toBeGreaterThan(-2);
         expect(box.right, `${m.drawing} right`).toBeLessThan(102);
         expect(box.top, `${m.drawing} top`).toBeGreaterThan(-2);
@@ -106,28 +116,40 @@ describe("composition", () => {
       // 2026-07-27: "no overlaps are allowed at all". Positions were relieved of
       // every collision by a solver holding a 1.4% gap; this is the guard that
       // stops a later nudge quietly putting one back.
-      for (let i = 0; i < onField.length; i++) {
-        for (let j = i + 1; j < onField.length; j++) {
-          const a = boxOf(PLACE[onField[i].drawing][set.key], onField[i].drawing, set.ratio);
-          const b = boxOf(PLACE[onField[j].drawing][set.key], onField[j].drawing, set.ratio);
+      // Everything that can share a screen: the five with each other, and each
+      // aspect's ring with its own hero and siblings.
+      const groups = [
+        Object.values(HERO).map((h) => h.drawing),
+        ...Object.keys(HERO).map((id) => [
+          HERO[id].drawing,
+          ...Object.keys(ORBIT).filter((d) => ASPECT_OF[d] === id),
+        ]),
+      ];
+
+      for (const group of groups)
+      for (let i = 0; i < group.length; i++) {
+        for (let j = i + 1; j < group.length; j++) {
+          const a = boxOf(spotOf(group[i], set.key), group[i], set.ratio);
+          const b = boxOf(spotOf(group[j], set.key), group[j], set.ratio);
 
           const ox = Math.min(a.right, b.right) - Math.max(a.left, b.left);
           const oy = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
 
           expect(
             Math.min(ox, oy),
-            `${onField[i].drawing} touches ${onField[j].drawing} (${set.name})`,
+            `${group[i]} touches ${group[j]} (${set.name})`,
           ).toBeLessThanOrEqual(0);
         }
       }
     });
 
-    it(`keeps every ${set.name} hero larger than every other drawing`, () => {
-      // The weights are the whole way in. A drawing that outgrows a hero makes
-      // the field unreadable as a set of destinations.
-      const heroSizes = heroes.map((m) => PLACE[m.drawing][set.key].h);
-      const restSizes = onField.filter((m) => !m.hero).map((m) => PLACE[m.drawing][set.key].h);
-      expect(Math.min(...heroSizes)).toBeGreaterThan(Math.max(...restSizes));
+    it(`keeps every ${set.name} hero larger than its own orbiters`, () => {
+      for (const [id, h] of Object.entries(HERO)) {
+        const own = Object.keys(ORBIT).filter((d) => ASPECT_OF[d] === id);
+        for (const d of own) {
+          expect(ORBIT[d].h, `${d} vs ${id}`).toBeLessThan(h[set.key].h);
+        }
+      }
     });
   }
 
@@ -137,7 +159,9 @@ describe("composition", () => {
     // null at an edge, but the graph as a whole has to be connected or a drawing
     // becomes unreachable once you are in close.
     for (const set of ["wide", "tall"] as const) {
-      const spots = onField.map((m) => ({ id: m.drawing, spot: PLACE[m.drawing][set] }));
+      // Arrows move between the FIVE only, so the graph that has to be connected
+      // is the five, not all twenty-three.
+      const spots = Object.values(HERO).map((h) => ({ id: h.drawing, spot: h[set] }));
 
       for (const start of spots) {
         const seen = new Set([start.id]);
@@ -168,7 +192,7 @@ describe("camera", () => {
   it("lands whatever you picked on the anchor", () => {
     for (const set of ["wide", "tall"] as const) {
       for (const m of onField) {
-        const hero = PLACE[m.drawing][set];
+        const hero = spotOf(m.drawing, set);
         const anchor = ANCHOR[set];
         const grow = CLOSE[set];
 
@@ -184,7 +208,7 @@ describe("camera", () => {
         // A camera that zoomed OUT to reach something would read as a mistake,
         // and the cap keeps a small drawing from flying the field out of frame.
         expect(k, `${m.drawing} ${set} zoom`).toBeGreaterThan(1);
-        expect(k, `${m.drawing} ${set} cap`).toBeLessThanOrEqual(4.2);
+        expect(k, `${m.drawing} ${set} cap`).toBeLessThanOrEqual(4.6);
       }
     }
   });

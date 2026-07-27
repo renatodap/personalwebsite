@@ -2,7 +2,7 @@ import "server-only";
 import { prisma } from "@/lib/db";
 import type { SiteSetting } from "@prisma/client";
 import { SETTINGS, ASPECTS as SEEDED } from "@/content/site.mjs";
-import { PLACE, type Place } from "@/lib/layout";
+import { ASPECT_OF } from "@/lib/layout";
 
 /**
  * The only module the view layer uses to reach the database.
@@ -23,13 +23,17 @@ import { PLACE, type Place } from "@/lib/layout";
 
 export type { SiteSetting };
 
+/** A drawing the geometry does not know about would silently never render, so
+ *  it is dropped here loudly rather than quietly. */
+export function placed(drawing: string): boolean {
+  return Boolean(ASPECT_OF[drawing]);
+}
+
 export type Mark = {
   drawing: string;
   alt: string;
   /** The largest drawing of its aspect, and the one that carries the label. */
   hero: boolean;
-  /** Absent means the drawing has no place in the composition at all. */
-  place?: Place;
 };
 
 export type Aspect = {
@@ -53,11 +57,6 @@ export async function getSettings(): Promise<SiteSetting> {
   }
 }
 
-/** Joins a content row to its place in the composition. No place, no appearance. */
-function place(drawing: string): Pick<Mark, "place"> {
-  return PLACE[drawing] ? { place: PLACE[drawing] } : {};
-}
-
 function fromSeed(): Aspect[] {
   return SEEDED.map((a) => ({
     id: a.id,
@@ -67,7 +66,6 @@ function fromSeed(): Aspect[] {
       drawing: m.drawing,
       alt: m.alt,
       hero: m.hero === true,
-      ...place(m.drawing),
     })),
   }));
 }
@@ -93,7 +91,6 @@ export async function getAspects(): Promise<Aspect[]> {
         drawing: m.drawing,
         alt: m.alt,
         hero: m.isHero,
-        ...place(m.drawing),
       })),
     }));
   } catch {

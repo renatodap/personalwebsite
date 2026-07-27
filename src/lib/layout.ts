@@ -1,121 +1,178 @@
 import { RATIO } from "@/lib/ratios";
 
 /**
- * THE FIELD: geometry.
+ * THE FIELD: geometry. Content lives in Postgres; this is the part that is not
+ * content, and it is deliberately not editable.
  *
- * Content lives in Postgres (src/content/site.mjs seeds it). This file is the
- * part that is not content: where each drawing sits and how large it is. Design
- * is code on this site and is deliberately not editable, so the composition
- * cannot drift through an admin form.
+ * THREE LEVELS, one space.
  *
- * ONE SPACE, NOT TWO SCREENS. Zooming in does not swap to another layout; it
- * moves a camera over this one. What you see zoomed in is exactly what you saw
- * zoomed out, larger, in its own place. Every drawing is a destination.
+ *   FAR    the five heroes alone on the canvas. Nothing else is drawn.
+ *   ASPECT the camera stands in front of one hero. Its own drawings appear,
+ *          orbiting it, and its sentences appear. Nobody else's do.
+ *   NEAR   the camera stands in front of one of those smaller drawings. No
+ *          sentences: the words belong to the aspect, not to each drawing.
  *
- * COORDINATES. The canvas is measured 0-100 on both axes at a FIXED aspect
- * ratio per arrangement (1.6 wide, 0.62 tall). Fixing the ratio is what makes
- * the composition exact: a drawing is placed by the CENTRE of its box and sized
- * by HEIGHT alone, and its width, h * RATIO / canvasRatio, is then a constant
- * rather than something that swells on a narrow window. Surplus viewport becomes
- * bare field, which is invisible because the ground is one flat colour.
+ * Arrows and swipe move between the FIVE ASPECTS only, never into a smaller
+ * drawing. You reach those by clicking one, which is a different intent and
+ * deserves a different gesture.
  *
- * NOTHING OVERLAPS. Not a little, not at 25%: at all. Two traced line figures on
- * top of each other read as one damaged figure, and the whole page is line
- * figures. Positions were authored by hand and then relieved of every collision
- * by a relaxation solver holding a 1.4% gap, which moved nothing more than 2.1%
- * from where it was drawn. A test asserts the zero, so a later nudge cannot
- * quietly reintroduce a collision.
- *
- * DEPTH. The five childhood drawings sit BESIDE the adult they answer and are
- * invisible until the camera comes in close. That is semantic zoom, and it is
- * also the site's whole argument: zoom into the man and the boy is already
- * there, in the same space, with nothing written about it.
+ * ORBITS, NOT A SCATTER. A satellite is placed by a radius and an angle around
+ * its hero rather than by an authored coordinate. That makes "nothing overlaps"
+ * true by construction instead of true because a solver made it so: one ring per
+ * aspect, satellites spread evenly around it, radius chosen to clear the hero.
+ * They turn, very slowly, so the field is never quite still.
  */
 
 export type Spot = { x: number; y: number; h: number };
-export type Place = { wide: Spot; tall: Spot; deep?: true };
 
-/** Fixed, so the arrangement is exact rather than merely approximate. */
+/** Fixed, so the arrangement is exact rather than approximate. */
 export const CANVAS = { wide: 1.6, tall: 0.62 };
 
-/** Both the CSS media query and matchMedia use this. They must not disagree. */
+/** How far the ring reaches sideways, as a fraction of its vertical reach.
+ *  0.62 on wide is very nearly a true circle (1/1.6). On tall a true circle
+ *  would need 1.6x and throw every ring off the sides, while squeezing x
+ *  instead pulls the ring inside the hero's own width, so the orbit is simply
+ *  taller than it is wide there. Both read as an orbit seen at an angle. */
+export const ORBIT_X = { wide: 0.62, tall: 1.0 };
 export const TALL_QUERY = "(max-aspect-ratio: 19/20)";
 
-export const PLACE: Record<string, Place> = {
-  // Brazil, upper left.
-  falls: { wide: { x: 18, y: 24, h: 18 }, tall: { x: 33, y: 17, h: 12 } },
-  brazil: { wide: { x: 31, y: 18, h: 9 }, tall: { x: 62, y: 14.5, h: 7 }, deep: true },
-  "peter-pan": { wide: { x: 31, y: 31, h: 9 }, tall: { x: 86, y: 16, h: 7 }, deep: true },
+/** One full turn. Slow enough that you notice it only if you stop and look. */
+export const ORBIT_SECONDS = 240;
 
-  // Sport, across the top right and down the right edge.
-  tennis: { wide: { x: 73, y: 34, h: 25 }, tall: { x: 70, y: 27.8, h: 17 } },
-  serve: { wide: { x: 60, y: 17, h: 12 }, tall: { x: 27, y: 32, h: 9 } },
-  running: { wide: { x: 93, y: 25, h: 12 }, tall: { x: 47, y: 41, h: 8 } },
-  finish: { wide: { x: 80, y: 55, h: 13 }, tall: { x: 62, y: 44, h: 9 } },
-  medal: { wide: { x: 43, y: 22, h: 11 }, tall: { x: 86, y: 43, h: 8 } },
-  deadlift: { wide: { x: 93, y: 55, h: 13 }, tall: { x: 11, y: 42, h: 9 } },
-  "broken-racket": { wide: { x: 58, y: 52, h: 12 }, tall: { x: 31, y: 48.6, h: 8 } },
-  "first-racket": { wide: { x: 88, y: 39, h: 8 }, tall: { x: 48, y: 30, h: 6 }, deep: true },
+/** The five. These are the whole of the far view. */
+/** Ring radius as a fraction of the hero's own height. Constant across aspects
+ *  so the ring subtends roughly the same angle whatever you are standing in
+ *  front of; a fixed radius makes a small hero's ring fly off the canvas once
+ *  the camera zooms in to compensate for its size.
+ *
+ *  1.15 rather than 0.85 because the ring has to clear the hero's WIDTH, not
+ *  its height: `falls` is 1.32:1, so its half-width is a third larger than its
+ *  half-height, and at 0.85 an orbiter passing beside it collided. */
+export const RING_OF_HERO = 1.28;
 
-  // Music, the largest cluster, anchored lower left. The guitar is the biggest
-  // thing on the field: the header has already said "software engineer", so the
-  // first image is free to break the expectation rather than confirm it.
-  guitar: { wide: { x: 16.9, y: 57.6, h: 26 }, tall: { x: 27, y: 62.4, h: 17 } },
-  keys: { wide: { x: 35, y: 43, h: 12 }, tall: { x: 56, y: 57, h: 8 } },
-  bass: { wide: { x: 35.4, y: 60, h: 13 }, tall: { x: 70.5, y: 63, h: 9 } },
-  drums: { wide: { x: 30, y: 76.9, h: 12 }, tall: { x: 88, y: 56, h: 8 } },
-  "webcam-guitar": { wide: { x: 7, y: 77.4, h: 11 }, tall: { x: 85.5, y: 70, h: 7 } },
-  "broken-sticks": { wide: { x: 20, y: 86, h: 10 }, tall: { x: 61, y: 73, h: 7 } },
-  "first-guitar": { wide: { x: 28.1, y: 65.1, h: 9 }, tall: { x: 50, y: 66, h: 7 }, deep: true },
-
-  // Camera, bottom centre.
-  camera: { wide: { x: 47.2, y: 75, h: 21 }, tall: { x: 26, y: 81, h: 14 } },
-  filmset: { wide: { x: 61, y: 86, h: 11 }, tall: { x: 47, y: 76, h: 7 } },
-  "first-camera": { wide: { x: 57.2, y: 68, h: 8 }, tall: { x: 46, y: 86, h: 6 }, deep: true },
-
-  // Software, bottom right.
-  working: { wide: { x: 80, y: 79, h: 20 }, tall: { x: 71, y: 85, h: 14 } },
-  graduation: { wide: { x: 94, y: 78, h: 15 }, tall: { x: 93, y: 83, h: 10 } },
+export const HERO: Record<string, { drawing: string; wide: Spot; tall: Spot }> = {
+  brazil: {
+    drawing: "falls",
+    wide: { x: 24, y: 32, h: 18 },
+    tall: { x: 30, y: 21, h: 12 },
+  },
+  sport: {
+    drawing: "tennis",
+    wide: { x: 70, y: 38, h: 25 },
+    tall: { x: 64, y: 30, h: 17 },
+  },
+  music: {
+    drawing: "guitar",
+    wide: { x: 26, y: 62, h: 26 },
+    tall: { x: 36, y: 64, h: 17 },
+  },
+  camera: {
+    drawing: "camera",
+    wide: { x: 50, y: 50, h: 21 },
+    tall: { x: 40, y: 47, h: 14 },
+  },
+  software: {
+    drawing: "working",
+    wide: { x: 72, y: 68, h: 20 },
+    tall: { x: 64, y: 76, h: 14 },
+  },
 };
 
 /**
- * How much of the canvas a drawing fills once you are standing in front of it.
- * Not 100%: the point of this zoom is that you still see where you are, so the
- * neighbours stay in frame. Height rather than width, like everything else.
+ * Everything else, by the aspect it orbits. `turn` is the starting angle in
+ * turns, spread evenly by the seeder below; `h` is its height in canvas percent.
  */
-export const CLOSE = { wide: 46, tall: 34 };
+export type Orbiter = { aspect: string; turn: number; h: number };
 
-/** Where the camera puts the drawing you are looking at. Off centre on a wide
- *  screen so the sentences have a margin; high on a tall one, words underneath. */
-export const ANCHOR = {
-  wide: { x: 63, y: 48 },
-  tall: { x: 50, y: 34 },
+const RING: Record<string, Array<{ drawing: string; h: number }>> = {
+  brazil: [
+    { drawing: "brazil", h: 10 },
+    { drawing: "peter-pan", h: 10 },
+  ],
+  sport: [
+    { drawing: "serve", h: 11 },
+    { drawing: "running", h: 10 },
+    { drawing: "finish", h: 11 },
+    { drawing: "medal", h: 10 },
+    { drawing: "deadlift", h: 11 },
+    { drawing: "broken-racket", h: 10 },
+    { drawing: "first-racket", h: 9 },
+  ],
+  music: [
+    { drawing: "keys", h: 11 },
+    { drawing: "bass", h: 11 },
+    { drawing: "drums", h: 11 },
+    { drawing: "webcam-guitar", h: 10 },
+    { drawing: "broken-sticks", h: 10 },
+    { drawing: "first-guitar", h: 9 },
+  ],
+  camera: [
+    { drawing: "filmset", h: 11 },
+    { drawing: "first-camera", h: 10 },
+  ],
+  software: [{ drawing: "graduation", h: 13 }],
 };
 
-/**
- * The camera, closed form.
- *
- * With `transform-origin: 0 0`, `translate(tx%, ty%) scale(k)` maps canvas point
- * (cx, cy) to (tx + k*cx, ty + k*cy). Solving for that point landing on the
- * anchor gives tx = ax - k*cx. Percentages inside `translate` resolve against
- * the element's own box, which IS the canvas, so this is correct at every
- * viewport with no measurement, no ResizeObserver and no layout read.
- *
- * `k` is capped so a small drawing does not fly the camera so far in that the
- * field around it leaves the frame. Seeing where you are is the whole point.
- */
-export function cameraFor(spot: Spot, anchor: { x: number; y: number }, close: number): string {
-  const k = Math.min(4.2, close / spot.h);
-  const tx = anchor.x - k * spot.x;
-  const ty = anchor.y - k * spot.y;
-
-  return `translate(${tx.toFixed(3)}%, ${ty.toFixed(3)}%) scale(${k.toFixed(4)})`;
+export const ORBIT: Record<string, Orbiter> = {};
+for (const [aspect, ring] of Object.entries(RING)) {
+  ring.forEach((o, i) => {
+    // Evenly spread, and started off the vertical so nothing sits directly under
+    // its hero's label.
+    ORBIT[o.drawing] = { aspect, turn: i / ring.length + 0.08, h: o.h };
+  });
 }
 
-/** The whole field, seen at once. Written out so both states are one shape. */
+export const HEROES = Object.values(HERO).map((h) => h.drawing);
+export const ASPECT_OF: Record<string, string> = {};
+for (const [id, h] of Object.entries(HERO)) ASPECT_OF[h.drawing] = id;
+for (const [d, o] of Object.entries(ORBIT)) ASPECT_OF[d] = o.aspect;
+
+/** Where a drawing is right now, ignoring the slow turn. Used by the camera and
+ *  by the tests; the turn itself is a CSS animation and the camera does not
+ *  chase it, because chasing a 240-second rotation would be motion for nothing. */
+export function spotOf(drawing: string, set: "wide" | "tall"): Spot {
+  const hero = HERO[ASPECT_OF[drawing]];
+  if (hero.drawing === drawing) return hero[set];
+
+  const o = ORBIT[drawing];
+  const a = o.turn * Math.PI * 2;
+  const r = hero[set].h * RING_OF_HERO;
+
+  return {
+    // ONE x factor for both arrangements, not 1/canvasRatio. On the wide canvas
+    // 0.62 is very nearly the circle (1/1.6 = 0.625). On the tall one a true
+    // circle would need 1.6x, which throws every ring off the sides, so the
+    // orbit becomes an ellipse instead. An ellipse reads as an orbit seen at an
+    // angle, which is not a compromise anyone can see.
+    x: hero[set].x + r * Math.sin(a) * ORBIT_X[set],
+    y: hero[set].y - r * Math.cos(a),
+    h: o.h,
+  };
+}
+
+/** How much of the canvas the thing you are looking at fills. */
+/* wide 42 / tall 25. The tall number is smaller because x is a percentage of a
+   NARROWER box there, so the same ring spans far more of the width: at 32 the
+   satellites left the canvas entirely. */
+export const CLOSE = { wide: 42, tall: 25 };
+/* Off centre on a wide screen so the sentences own the left third and never sit
+   under a satellite; centred on a tall one, with the words below the ring. */
+export const ANCHOR = { wide: { x: 63, y: 50 }, tall: { x: 50, y: 38 } };
+
+/**
+ * The camera, closed form. With `transform-origin: 0 0`,
+ * `translate(tx%, ty%) scale(k)` maps canvas point (cx, cy) to
+ * (tx + k*cx, ty + k*cy); solving for the anchor gives tx = ax - k*cx.
+ * Percentages resolve against the stage's own box, which IS the canvas, so this
+ * is correct at every viewport with no measurement and no layout read.
+ */
+export function cameraFor(spot: Spot, anchor: { x: number; y: number }, close: number): string {
+  const k = Math.min(4.6, close / spot.h);
+  return `translate(${(anchor.x - k * spot.x).toFixed(3)}%, ${(anchor.y - k * spot.y).toFixed(3)}%) scale(${k.toFixed(4)})`;
+}
+
 export const REST = "translate(0%, 0%) scale(1)";
 
-/** Box in canvas percent. Used by the tests, which assert the zero overlap. */
 export function boxOf(spot: Spot, drawing: string, canvasRatio: number) {
   const w = (spot.h * RATIO[drawing]) / canvasRatio;
   return {
@@ -127,18 +184,17 @@ export function boxOf(spot: Spot, drawing: string, canvasRatio: number) {
 }
 
 /**
- * Which drawing lies in a given direction, for the arrows and the swipe.
- *
- * A cone rather than a quadrant: candidates within 75 degrees of the direction
- * qualify, and the nearest of those wins. Wide, deliberately, because the rule
- * is that you can always keep moving unless you are genuinely at the edge of the
- * field. A quadrant split would strand a drawing sitting just past 45 degrees,
- * unreachable in both directions.
- *
- * Returning null is then a real answer: there is nothing further that way, and
- * the site says so by not moving.
+ * Which aspect lies in a given direction. A 75-degree cone, nearest wins: wide
+ * on purpose, because the rule is that you can keep moving unless you are
+ * genuinely at the edge. Returning null is a real answer, and the field says so
+ * by not moving.
  */
-const CONE = Math.cos((75 * Math.PI) / 180);
+/* 48 degrees. Wider cones read as more forgiving but are not: at 75 the centre
+   hero won every direction from everywhere, because it was inside all four
+   cones and always nearest, and `software` became unreachable entirely. A cone
+   narrow enough to mean "that way" keeps the five-node graph connected, which a
+   test asserts from every starting point. */
+const CONE = Math.cos((48 * Math.PI) / 180);
 
 export function toward(
   from: Spot,
@@ -153,9 +209,7 @@ export function toward(
     const dy = c.spot.y - from.y;
     const dist = Math.hypot(dx, dy);
     if (dist < 0.5) continue;
-
     if ((dx * dir[0] + dy * dir[1]) / dist < CONE) continue;
-
     if (dist < nearest) {
       nearest = dist;
       best = c.id;
@@ -166,7 +220,6 @@ export function toward(
 }
 
 export const DIRECTIONS: Record<string, [number, number]> = {
-  // y grows downward on the canvas, so "up" is negative.
   left: [-1, 0],
   right: [1, 0],
   up: [0, -1],
