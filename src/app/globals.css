@@ -197,6 +197,8 @@ body {
    travels round the ring while staying upright. Very slow on purpose: the field
    is never quite still, and you only notice if you stop and look.             */
 .ring {
+  /* No border, no outline, no background: the orbit path is never drawn. The
+     box exists only to be rotated. */
   position: absolute;
   left: calc(var(--wx) * 1%);
   top: calc(var(--wy) * 1%);
@@ -225,8 +227,14 @@ body {
   height: calc(var(--oh) * 1%);
   translate: -50% -50%;
   pointer-events: auto;
+  /* The SAME negative delay as the ring, not the positive one. Reversed
+     direction plus a matching phase is what cancels exactly; with the sign
+     flipped the two rotations only agreed at the start and the drawing slowly
+     turned over as it travelled. Renato, 2026-07-27: "make sure all smaller
+     ones are at least within 10 degrees each way of being correctly oriented".
+     Cancelled exactly, they never leave 0. */
   animation: turn var(--spin) linear infinite reverse;
-  animation-delay: calc(var(--turn) * var(--spin));
+  animation-delay: calc(var(--turn) * var(--spin) * -1);
 }
 
 /* The orbiter's height is a percentage of its RING, not of the stage, so it is

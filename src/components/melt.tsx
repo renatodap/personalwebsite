@@ -39,10 +39,14 @@ import type { Spot } from "@/lib/layout";
  */
 
 /** Enough overlap that consecutive frames join into a continuous ribbon. */
-const WIDTH = 1.15;
+const WIDTH = 1.05;
 
 /** Swirl amplitude in canvas percent, at the midpoint. */
-const CURL = 5.5;
+const CURL = 9;
+
+/** Frames of streak kept behind each particle. A one-frame streak is a dash; a
+ *  trail is a filament, and filaments are what a fluid is made of. */
+const TRAIL = 5;
 
 export function Melt({
   from,
@@ -121,6 +125,11 @@ export function Melt({
         lead[i] = dx >= 0 ? ax : 1 - ax;
       }
 
+      // A ring buffer of past positions, so each particle draws a curved
+      // filament rather than a straight one-frame dash. This is most of the
+      // difference between "particles moving" and "ink flowing".
+      const trail = new Float32Array(n * 2 * TRAIL);
+      let head = 0;
       const prev = new Float32Array(n * 2);
 
 
@@ -133,8 +142,10 @@ export function Melt({
         // Renormalised so every particle still completes exactly at t = 1.
         const local = Math.min(1, Math.max(0, (t - lead[i] * 0.3) / 0.7));
 
-        // Leaves fast, arrives slow: quintic ease-out is the settle.
-        const e = 1 - Math.pow(1 - local, 4);
+        // Leaves fast, arrives slow, and eases IN at the very start too, so ink
+        // peels away rather than jumping. A pure ease-out starts at maximum
+        // speed, which is exactly the "constructing out of nowhere" tell.
+        const e = local < 0.18 ? 2.6 * local * local : 1 - Math.pow(1 - local, 3.4) * 0.916;
 
         const ia = oa[i] * 2;
         const ib = ob[i] * 2;
@@ -145,8 +156,14 @@ export function Melt({
 
         // One current: every particle bows the same way. The swirl is a full
         // turn of phase across the flight, so the stream rolls over itself.
-        const swell = Math.sin(Math.PI * e);
-        const curl = swell * CURL * Math.sin(phase[i] * Math.PI * 2 + e * Math.PI * 1.6);
+        // Two swirls at different rates, so the current folds over itself
+        // instead of every particle tracing one tidy arc.
+        const swell = Math.sin(Math.PI * e) ** 0.8;
+        const curl =
+          swell *
+          CURL *
+          (Math.sin(phase[i] * Math.PI * 2 + e * Math.PI * 1.7) * 0.72 +
+            Math.sin(phase[i] * Math.PI * 5.1 + e * Math.PI * 3.3) * 0.28);
 
         out[0] = x0 + (x1 - x0) * e + px * curl;
         out[1] = y0 + (y1 - y0) * e + py * curl;
@@ -156,8 +173,16 @@ export function Melt({
 
       for (let i = 0; i < n; i++) {
         at(i, 0, p);
-        prev[i * 2] = (p[0] / 100) * w;
-        prev[i * 2 + 1] = (p[1] / 100) * h;
+        const x = (p[0] / 100) * w;
+        const y = (p[1] / 100) * h;
+        prev[i * 2] = x;
+        prev[i * 2 + 1] = y;
+        // Every slot in the trail starts on the figure, so the first frame is
+        // the drawing itself rather than a scatter of half-drawn filaments.
+        for (let k = 0; k < TRAIL; k++) {
+          trail[(k * n + i) * 2] = x;
+          trail[(k * n + i) * 2 + 1] = y;
+        }
       }
 
 
@@ -175,24 +200,22 @@ export function Melt({
           const x = (p[0] / 100) * w;
           const y = (p[1] / 100) * h;
 
-          // The streak IS the particle's velocity, and it is drawn from the
-          // previous position, so at rest the streak has zero length and the
-          // cloud is exactly the drawing. That is what makes the ink RESOLVE
-          // into the figure rather than be replaced by it.
-          ctx.moveTo(prev[i * 2], prev[i * 2 + 1]);
-          ctx.lineTo(x, y);
-
-          // A dot at the head, so a particle that has stopped is still ink. A
-          // pure streak vanishes the instant it stops, which left the last
-          // frames nearly empty.
+          // The filament: this frame's position back through the last few. At
+          // rest every slot holds the same point, so the filament has zero
+          // length and the cloud is exactly the drawing, which is what makes
+          // the ink RESOLVE into the figure rather than be replaced by it.
           ctx.moveTo(x, y);
-          ctx.lineTo(x + 0.01, y);
+          for (let k = 1; k <= TRAIL; k++) {
+            const slot = (head - k + TRAIL * 2) % TRAIL;
+            ctx.lineTo(trail[(slot * n + i) * 2], trail[(slot * n + i) * 2 + 1]);
+          }
 
-          prev[i * 2] = x;
-          prev[i * 2 + 1] = y;
+          trail[(head * n + i) * 2] = x;
+          trail[(head * n + i) * 2 + 1] = y;
         }
 
         ctx.stroke();
+        head = (head + 1) % TRAIL;
 
         if (t < 1 && !cancelled) raf = requestAnimationFrame(frame);
         else if (!cancelled) done.current();

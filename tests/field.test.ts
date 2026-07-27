@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import { ASPECTS, SETTINGS } from "../src/content/site.mjs";
 import { checkCopy } from "../prisma/copy-rules.mjs";
-import { HERO, ORBIT, ASPECT_OF, ANCHOR, CANVAS, CLOSE, ORBIT_X, RING_OF_HERO, boxOf, cameraFor, spotOf, toward, DIRECTIONS } from "../src/lib/layout";
+import { HERO, ORBIT, ASPECT_OF, ANCHOR, CANVAS, CLOSE, ORBIT_X, ringOf, orbiterH, boxOf, cameraFor, spotOf, ORDER, step } from "../src/lib/layout";
 import { RATIO } from "../src/lib/ratios";
 import { readRatios, render } from "../scripts/ratios.mjs";
 
@@ -83,30 +83,37 @@ describe("composition", () => {
   ];
 
   for (const set of SETS) {
-    it(`keeps every ${set.name} drawing inside the canvas, through a whole turn`, () => {
-      // The ring ROTATES, so every orbiter eventually reaches every point on it.
-      // Checking only its starting angle would pass a ring that swings off the
-      // top of the canvas thirty seconds later.
-      const extremes = (drawing: string) => {
-        if (!ORBIT[drawing]) return [spotOf(drawing, set.key)];
-        const h = HERO[ASPECT_OF[drawing]];
-        const r = h[set.key].h * RING_OF_HERO;
-        const o = ORBIT[drawing];
-        return [
-          { x: h[set.key].x + r * ORBIT_X[set.key], y: h[set.key].y, h: o.h },
-          { x: h[set.key].x - r * ORBIT_X[set.key], y: h[set.key].y, h: o.h },
-          { x: h[set.key].x, y: h[set.key].y + r, h: o.h },
-          { x: h[set.key].x, y: h[set.key].y - r, h: o.h },
-        ];
-      };
+    it(`keeps every ${set.name} hero inside the canvas`, () => {
+      // Canvas bounds bind the FIVE, because the five are the whole of the far
+      // view. An orbiter is never on screen there, so asking it to fit the
+      // canvas is the wrong question; what it has to fit is the zoomed view,
+      // which is the test below.
+      for (const h of Object.values(HERO)) {
+        const box = boxOf(h[set.key], h.drawing, set.ratio);
+        expect(box.left, `${h.drawing} left`).toBeGreaterThan(-2);
+        expect(box.right, `${h.drawing} right`).toBeLessThan(102);
+        expect(box.top, `${h.drawing} top`).toBeGreaterThan(-2);
+        expect(box.bottom, `${h.drawing} bottom`).toBeLessThan(102);
+      }
+    });
 
-      for (const m of onField)
-      for (const spot of extremes(m.drawing)) {
-        const box = boxOf(spot, m.drawing, set.ratio);
-        expect(box.left, `${m.drawing} left`).toBeGreaterThan(-2);
-        expect(box.right, `${m.drawing} right`).toBeLessThan(102);
-        expect(box.top, `${m.drawing} top`).toBeGreaterThan(-2);
-        expect(box.bottom, `${m.drawing} bottom`).toBeLessThan(102);
+    it(`shows every ${set.name} orbiter once the camera is on its hero`, () => {
+      // Renato, 2026-07-27: "i can see all of them". The ring ROTATES, so every
+      // orbiter reaches every point on it; the whole ring plus the orbiter's own
+      // half-size has to sit inside what the camera can see, or one swings out
+      // of frame half a minute after you arrive.
+      for (const [id, h] of Object.entries(HERO)) {
+        const k = Math.min(4.6, CLOSE[set.key] / h[set.key].h);
+        const halfView = 50 / k;
+        const r = ringOf(h[set.key], h.drawing, set.key);
+
+        for (const d of Object.keys(ORBIT).filter((x) => ASPECT_OF[x] === id)) {
+          const oh = orbiterH(d, set.key);
+          const reachY = r + oh / 2;
+          const reachX = r * ORBIT_X[set.key] + (oh * RATIO[d]) / set.ratio / 2;
+          expect(reachY, `${d} vertical reach in ${id} (${set.name})`).toBeLessThan(halfView);
+          expect(reachX, `${d} sideways reach in ${id} (${set.name})`).toBeLessThan(halfView);
+        }
       }
     });
 
@@ -147,44 +154,32 @@ describe("composition", () => {
       for (const [id, h] of Object.entries(HERO)) {
         const own = Object.keys(ORBIT).filter((d) => ASPECT_OF[d] === id);
         for (const d of own) {
-          expect(ORBIT[d].h, `${d} vs ${id}`).toBeLessThan(h[set.key].h);
+          expect(orbiterH(d, set.key), `${d} vs ${id}`).toBeLessThan(h[set.key].h);
         }
       }
     });
   }
 
-  it("reaches every drawing from every other by arrow keys", () => {
-    // Renato, 2026-07-27: "always able to move up and down and left and right
-    // unless genuinely at the corner or side". The cone may legitimately return
-    // null at an edge, but the graph as a whole has to be connected or a drawing
-    // becomes unreachable once you are in close.
-    for (const set of ["wide", "tall"] as const) {
-      // Arrows move between the FIVE only, so the graph that has to be connected
-      // is the five, not all twenty-three.
-      const spots = Object.values(HERO).map((h) => ({ id: h.drawing, spot: h[set] }));
-
-      for (const start of spots) {
-        const seen = new Set([start.id]);
-        const queue = [start];
-
-        while (queue.length) {
-          const here = queue.shift()!;
-          for (const dir of Object.values(DIRECTIONS)) {
-            const next = toward(
-              here.spot,
-              spots.filter((s) => s.id !== here.id),
-              dir,
-            );
-            if (next && !seen.has(next)) {
-              seen.add(next);
-              queue.push(spots.find((s) => s.id === next)!);
-            }
-          }
+  it("turns through every aspect and comes back, both ways", () => {
+    // Left and right always move, so the only thing to prove is that the ring
+    // is a ring: five steps returns you to where you started, from anywhere, in
+    // either direction, and no aspect is skipped on the way.
+    for (const by of [1, -1] as const) {
+      for (const start of ORDER) {
+        const seen = new Set<string>();
+        let here = start;
+        for (let i = 0; i < ORDER.length; i++) {
+          seen.add(here);
+          here = step(here, by);
         }
-
-        expect(seen.size, `${set}: reachable from ${start.id}`).toBe(spots.length);
+        expect(here, `${start} by ${by}`).toBe(start);
+        expect(seen.size, `${start} by ${by} covers all`).toBe(ORDER.length);
       }
     }
+  });
+
+  it("orders the ring the way the content is ordered", () => {
+    expect(ORDER).toEqual(aspects.map((a) => a.id));
   });
 });
 

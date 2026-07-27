@@ -5,7 +5,6 @@ import {
   ANCHOR,
   ASPECT_OF,
   CLOSE,
-  DIRECTIONS,
   HERO,
   ORBIT,
   ORBIT_SECONDS,
@@ -14,7 +13,7 @@ import {
   TALL_QUERY,
   cameraFor,
   spotOf,
-  toward,
+  step,
 } from "@/lib/layout";
 import { RATIO } from "@/lib/ratios";
 import type { Aspect } from "@/lib/content";
@@ -43,7 +42,10 @@ const FLIGHT = 720;
 const EASE = "cubic-bezier(0.22, 1, 0.32, 1)";
 const REDUCED = "(prefers-reduced-motion: reduce)";
 const SWIPE = 40;
-const MELT = 900;
+/* Slower, at Renato's instruction 2026-07-27: "the liquid transition has to be
+   a bit slower and much more fluid". Ink needs time to read as a fluid; under
+   about a second it is a wipe. */
+const MELT = 1500;
 
 export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactNode }) {
   const [at, setAt] = useState<string | null>(null);
@@ -197,30 +199,22 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
     else go(up);
   }, [at, go]);
 
-  /** Arrows move between the FIVE, never into a smaller drawing. */
+  /** Left and right always move, round a ring that wraps. Never into a smaller
+   *  drawing: those are reached by clicking one. */
   const nextAspect = useCallback(
-    (dir: [number, number]) => {
+    (by: 1 | -1) => {
       const fromId = at ? ASPECT_OF[at] : null;
-      if (!fromId) return null;
-      return toward(
-        HERO[fromId][set],
-        Object.entries(HERO)
-          .filter(([id]) => id !== fromId)
-          .map(([, h]) => ({ id: h.drawing, spot: h[set] })),
-        dir,
-      );
+      return fromId ? HERO[step(fromId, by)].drawing : null;
     },
-    [at, set],
+    [at],
   );
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") return back();
-      const dir = { ArrowLeft: "left", ArrowRight: "right", ArrowUp: "up", ArrowDown: "down" }[
-        e.key
-      ];
-      if (!dir || !at) return;
-      const next = nextAspect(DIRECTIONS[dir]);
+      const by = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+      if (!by || !at) return;
+      const next = nextAspect(by);
       if (!next) return;
       e.preventDefault();
       go(next);
@@ -239,22 +233,23 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
     swipe.current = null;
     if (!start || !at) return;
     const dx = e.clientX - start.x;
-    const dy = e.clientY - start.y;
-    if (Math.hypot(dx, dy) < SWIPE) return;
-    const dir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? "right" : "left") : dy < 0 ? "down" : "up";
-    const next = nextAspect(DIRECTIONS[dir]);
+    if (Math.abs(dx) < SWIPE) return;
+    // Swiping left brings the next one in from the right, the way a map moves.
+    const next = nextAspect(dx < 0 ? 1 : -1);
     if (next) go(next);
   };
 
-  const exits = useMemo(() => {
-    if (!at) return [];
-    return (["left", "right", "up", "down"] as const)
-      .map((dir) => {
-        const next = nextAspect(DIRECTIONS[dir]);
-        return next ? { dir, drawing: next } : null;
-      })
-      .filter((x): x is { dir: "left" | "right" | "up" | "down"; drawing: string } => x !== null);
-  }, [at, nextAspect]);
+  // Always both, because the ring always turns.
+  const exits = useMemo(
+    () =>
+      at
+        ? ([
+            { dir: "left" as const, drawing: nextAspect(-1)! },
+            { dir: "right" as const, drawing: nextAspect(1)! },
+          ])
+        : [],
+    [at, nextAspect],
+  );
 
   const weight = (drawing: string) => {
     if (melt && (drawing === melt.from || drawing === melt.to)) return "melting";

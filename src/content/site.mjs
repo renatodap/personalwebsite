@@ -57,25 +57,6 @@ export const ASPECTS = [
     ],
   },
   {
-    id: "sport",
-    title: "Sport",
-    lines: [
-      "Four years of college tennis. The last one as captain.",
-      "7:32 per mile, for 13.1 of them.",
-    ],
-    marks: [
-      // The forehand, not the serve, at Renato's instruction 2026-07-26.
-      { drawing: "tennis", alt: "Mid forehand on a tennis court.", hero: true },
-      { drawing: "serve", alt: "Mid serve, racket overhead." },
-      { drawing: "running", alt: "Running." },
-      { drawing: "finish", alt: "After a race, wearing a finisher medal." },
-      { drawing: "medal", alt: "Biting a finisher medal." },
-      { drawing: "deadlift", alt: "Standing with a weight." },
-      { drawing: "broken-racket", alt: "Laughing, holding up a tennis racket snapped in two." },
-      { drawing: "first-racket", alt: "As a boy, holding a tennis racket on a court." },
-    ],
-  },
-  {
     id: "music",
     title: "Music",
     lines: [
@@ -100,6 +81,25 @@ export const ASPECTS = [
       { drawing: "camera", alt: "Shooting with a camera.", hero: true },
       { drawing: "filmset", alt: "Behind a camera on a tripod, beside a light." },
       { drawing: "first-camera", alt: "As a boy, holding a camcorder to his eye." },
+    ],
+  },
+  {
+    id: "sport",
+    title: "Sport",
+    lines: [
+      "Four years of college tennis. The last one as captain.",
+      "7:32 per mile, for 13.1 of them.",
+    ],
+    marks: [
+      // The forehand, not the serve, at Renato's instruction 2026-07-26.
+      { drawing: "tennis", alt: "Mid forehand on a tennis court.", hero: true },
+      { drawing: "serve", alt: "Mid serve, racket overhead." },
+      { drawing: "running", alt: "Running." },
+      { drawing: "finish", alt: "After a race, wearing a finisher medal." },
+      { drawing: "medal", alt: "Biting a finisher medal." },
+      { drawing: "deadlift", alt: "Standing with a weight." },
+      { drawing: "broken-racket", alt: "Laughing, holding up a tennis racket snapped in two." },
+      { drawing: "first-racket", alt: "As a boy, holding a tennis racket on a court." },
     ],
   },
   {

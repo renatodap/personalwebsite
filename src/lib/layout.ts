@@ -33,11 +33,19 @@ export const CANVAS = { wide: 1.6, tall: 0.62 };
  *  would need 1.6x and throw every ring off the sides, while squeezing x
  *  instead pulls the ring inside the hero's own width, so the orbit is simply
  *  taller than it is wide there. Both read as an orbit seen at an angle. */
-export const ORBIT_X = { wide: 0.62, tall: 1.0 };
+export const ORBIT_X = { wide: 0.62, tall: 1.45 };
+
+/** Orbiters run smaller on the tall canvas. Its heroes are smaller too, and a
+ *  ring has to clear both boxes, so carrying the wide sizes across left the
+ *  narrow arrangement permanently over-constrained: every fix to one collision
+ *  opened another. Scaling the ring's contents is the structural fix. */
+export const ORBITER_SCALE = { wide: 1, tall: 0.7 };
 export const TALL_QUERY = "(max-aspect-ratio: 19/20)";
 
-/** One full turn. Slow enough that you notice it only if you stop and look. */
-export const ORBIT_SECONDS = 240;
+/** One full turn: fifteen minutes. Slow enough that nothing appears to move at
+ *  all, and the arrangement is simply different if you come back to it. Renato,
+ *  2026-07-27: "make the orbit a lot slower. a lot slower". */
+export const ORBIT_SECONDS = 900;
 
 /** The five. These are the whole of the far view. */
 /** Ring radius as a fraction of the hero's own height. Constant across aspects
@@ -45,36 +53,38 @@ export const ORBIT_SECONDS = 240;
  *  front of; a fixed radius makes a small hero's ring fly off the canvas once
  *  the camera zooms in to compensate for its size.
  *
- *  1.15 rather than 0.85 because the ring has to clear the hero's WIDTH, not
- *  its height: `falls` is 1.32:1, so its half-width is a third larger than its
- *  half-height, and at 0.85 an orbiter passing beside it collided. */
-export const RING_OF_HERO = 1.28;
+ *  A FLOOR, not the answer: ringOf() below takes whichever is larger, this or
+ *  the clearance the hero's own width actually needs. A single ratio has to be
+ *  sized for the widest hero and then everything else is flung needlessly far
+ *  out; computing it per hero keeps the orbiters in close, which is the point.
+ *  Renato, 2026-07-27: "make sure the ones orbiting are closer in". */
+export const RING_OF_HERO = 0.5;
 
 export const HERO: Record<string, { drawing: string; wide: Spot; tall: Spot }> = {
   brazil: {
     drawing: "falls",
-    wide: { x: 24, y: 32, h: 18 },
-    tall: { x: 30, y: 21, h: 12 },
+    wide: { x: 20, y: 30, h: 28 },
+    tall: { x: 42, y: 16, h: 15 },
   },
   sport: {
     drawing: "tennis",
-    wide: { x: 70, y: 38, h: 25 },
-    tall: { x: 64, y: 30, h: 17 },
+    wide: { x: 48, y: 25, h: 33 },
+    tall: { x: 58, y: 33, h: 14 },
   },
   music: {
     drawing: "guitar",
-    wide: { x: 26, y: 62, h: 26 },
-    tall: { x: 36, y: 64, h: 17 },
+    wide: { x: 28, y: 74, h: 38 },
+    tall: { x: 34, y: 54, h: 18 },
   },
   camera: {
     drawing: "camera",
-    wide: { x: 50, y: 50, h: 21 },
-    tall: { x: 40, y: 47, h: 14 },
+    wide: { x: 68, y: 75, h: 32 },
+    tall: { x: 62, y: 71, h: 17 },
   },
   software: {
     drawing: "working",
-    wide: { x: 72, y: 68, h: 20 },
-    tall: { x: 64, y: 76, h: 14 },
+    wide: { x: 82, y: 26, h: 32 },
+    tall: { x: 38, y: 90, h: 17 },
   },
 };
 
@@ -90,27 +100,27 @@ const RING: Record<string, Array<{ drawing: string; h: number }>> = {
     { drawing: "peter-pan", h: 10 },
   ],
   sport: [
-    { drawing: "serve", h: 11 },
+    { drawing: "serve", h: 10 },
     { drawing: "running", h: 10 },
-    { drawing: "finish", h: 11 },
+    { drawing: "finish", h: 10 },
     { drawing: "medal", h: 10 },
-    { drawing: "deadlift", h: 11 },
+    { drawing: "deadlift", h: 10 },
     { drawing: "broken-racket", h: 10 },
     { drawing: "first-racket", h: 9 },
   ],
   music: [
-    { drawing: "keys", h: 11 },
-    { drawing: "bass", h: 11 },
-    { drawing: "drums", h: 11 },
+    { drawing: "keys", h: 10 },
+    { drawing: "bass", h: 10 },
+    { drawing: "drums", h: 10 },
     { drawing: "webcam-guitar", h: 10 },
     { drawing: "broken-sticks", h: 10 },
     { drawing: "first-guitar", h: 9 },
   ],
   camera: [
-    { drawing: "filmset", h: 11 },
+    { drawing: "filmset", h: 10 },
     { drawing: "first-camera", h: 10 },
   ],
-  software: [{ drawing: "graduation", h: 13 }],
+  software: [{ drawing: "graduation", h: 12 }],
 };
 
 export const ORBIT: Record<string, Orbiter> = {};
@@ -120,6 +130,35 @@ for (const [aspect, ring] of Object.entries(RING)) {
     // its hero's label.
     ORBIT[o.drawing] = { aspect, turn: i / ring.length + 0.08, h: o.h };
   });
+}
+
+/** Half-extent of a box in canvas-height units, whichever way it is bigger. */
+function reach(h: number, drawing: string): number {
+  return (h * Math.max(1, RATIO[drawing])) / 2;
+}
+
+/** An orbiter's height in a given arrangement. */
+export function orbiterH(drawing: string, set: "wide" | "tall"): number {
+  return ORBIT[drawing].h * ORBITER_SCALE[set];
+}
+
+/**
+ * Ring radius for one hero: the larger of the floor above and the clearance the
+ * two boxes actually demand. Both halves matter and both vary. A hero is as wide
+ * as h * ratio, so `falls` at 1.32:1 needs a third more room than its height
+ * suggests while a narrow figure keeps its orbiters tucked in close; and the
+ * widest orbiter on the ring sets the other half, which is why `drums` at
+ * 1.08:1 pushed the music ring out further than the drawings around it.
+ */
+export function ringOf(hero: { h: number }, drawing: string, set: "wide" | "tall" = "wide"): number {
+  const aspect = ASPECT_OF[drawing];
+  const widest = Math.max(
+    ...Object.keys(ORBIT)
+      .filter((d) => ASPECT_OF[d] === aspect)
+      .map((d) => reach(orbiterH(d, set), d)),
+    0,
+  );
+  return Math.max(hero.h * RING_OF_HERO, reach(hero.h, drawing) + widest + 5.0);
 }
 
 export const HEROES = Object.values(HERO).map((h) => h.drawing);
@@ -136,7 +175,7 @@ export function spotOf(drawing: string, set: "wide" | "tall"): Spot {
 
   const o = ORBIT[drawing];
   const a = o.turn * Math.PI * 2;
-  const r = hero[set].h * RING_OF_HERO;
+  const r = ringOf(hero[set], hero.drawing, set);
 
   return {
     // ONE x factor for both arrangements, not 1/canvasRatio. On the wide canvas
@@ -146,7 +185,7 @@ export function spotOf(drawing: string, set: "wide" | "tall"): Spot {
     // angle, which is not a compromise anyone can see.
     x: hero[set].x + r * Math.sin(a) * ORBIT_X[set],
     y: hero[set].y - r * Math.cos(a),
-    h: o.h,
+    h: orbiterH(drawing, set),
   };
 }
 
@@ -154,7 +193,7 @@ export function spotOf(drawing: string, set: "wide" | "tall"): Spot {
 /* wide 42 / tall 25. The tall number is smaller because x is a percentage of a
    NARROWER box there, so the same ring spans far more of the width: at 32 the
    satellites left the canvas entirely. */
-export const CLOSE = { wide: 42, tall: 25 };
+export const CLOSE = { wide: 40, tall: 22 };
 /* Off centre on a wide screen so the sentences own the left third and never sit
    under a satellite; centred on a tall one, with the words below the ring. */
 export const ANCHOR = { wide: { x: 63, y: 50 }, tall: { x: 50, y: 38 } };
@@ -184,44 +223,23 @@ export function boxOf(spot: Spot, drawing: string, canvasRatio: number) {
 }
 
 /**
- * Which aspect lies in a given direction. A 75-degree cone, nearest wins: wide
- * on purpose, because the rule is that you can keep moving unless you are
- * genuinely at the edge. Returning null is a real answer, and the field says so
- * by not moving.
+ * Navigation is a RING, not a compass. Left and right always move, in a fixed
+ * order that wraps, so there is no such thing as a dead end and no direction
+ * that quietly does nothing. Renato, 2026-07-27: "allow me to move always left
+ * and right no matter what, keep the same order but make it rotating".
+ *
+ * This replaces a spatial cone that chose the nearest hero in the direction you
+ * pressed. It read well on paper and badly in the hand: the centre hero was
+ * inside all four cones from everywhere and won every direction, some pairs were
+ * mutually unreachable, and half the presses did nothing at all.
+ *
+ * The order is the order of the aspects as seeded, so it is content, and it is
+ * the same order every time.
  */
-/* 48 degrees. Wider cones read as more forgiving but are not: at 75 the centre
-   hero won every direction from everywhere, because it was inside all four
-   cones and always nearest, and `software` became unreachable entirely. A cone
-   narrow enough to mean "that way" keeps the five-node graph connected, which a
-   test asserts from every starting point. */
-const CONE = Math.cos((48 * Math.PI) / 180);
+export const ORDER = ["brazil", "music", "camera", "sport", "software"];
 
-export function toward(
-  from: Spot,
-  candidates: Array<{ id: string; spot: Spot }>,
-  dir: [number, number],
-): string | null {
-  let best: string | null = null;
-  let nearest = Infinity;
-
-  for (const c of candidates) {
-    const dx = c.spot.x - from.x;
-    const dy = c.spot.y - from.y;
-    const dist = Math.hypot(dx, dy);
-    if (dist < 0.5) continue;
-    if ((dx * dir[0] + dy * dir[1]) / dist < CONE) continue;
-    if (dist < nearest) {
-      nearest = dist;
-      best = c.id;
-    }
-  }
-
-  return best;
+export function step(aspectId: string, by: 1 | -1): string {
+  const i = ORDER.indexOf(aspectId);
+  if (i < 0) return ORDER[0];
+  return ORDER[(i + by + ORDER.length) % ORDER.length];
 }
-
-export const DIRECTIONS: Record<string, [number, number]> = {
-  left: [-1, 0],
-  right: [1, 0],
-  up: [0, -1],
-  down: [0, 1],
-};
