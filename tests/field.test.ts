@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import { ASPECTS, SETTINGS } from "../src/content/site.mjs";
 import { checkCopy } from "../prisma/copy-rules.mjs";
-import { HERO, ORBIT, ASPECT_OF, ANCHOR, CANVAS, zoomFor, ORBIT_X, ringOf, orbiterH, boxOf, cameraFor, spotOf, ORDER, step } from "../src/lib/layout";
+import { HERO, ORBIT, ASPECT_OF, ANCHOR, CANVAS, zoomFor, stepWithin, ringOrder, ORBIT_X, ringOf, orbiterH, boxOf, cameraFor, spotOf, ORDER, step } from "../src/lib/layout";
 import { RATIO } from "../src/lib/ratios";
 import { readRatios, render } from "../scripts/ratios.mjs";
 
@@ -172,6 +172,25 @@ describe("composition", () => {
       }
       expect(here, start).toBe(start);
       expect(seen.size, `${start} covers all`).toBe(ORDER.length);
+    }
+  });
+
+  it("turns through one aspect's own drawings and comes back", () => {
+    // Standing inside an aspect, onward means its next drawing, not the next
+    // aspect, and it wraps so there is no dead end there either.
+    for (const id of ORDER) {
+      const own = ringOrder(id);
+      expect(own.length, id).toBeGreaterThan(0);
+
+      const seen = new Set<string>();
+      let here = own[0];
+      for (let i = 0; i < own.length; i++) {
+        seen.add(here);
+        expect(ASPECT_OF[here], `${here} stays in ${id}`).toBe(id);
+        here = stepWithin(here);
+      }
+      expect(here, id).toBe(own[0]);
+      expect(seen.size, `${id} covers its own`).toBe(own.length);
     }
   });
 

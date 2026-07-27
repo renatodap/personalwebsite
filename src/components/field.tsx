@@ -5,6 +5,8 @@ import {
   ANCHOR,
   ASPECT_OF,
   zoomFor,
+  stepWithin,
+  NEAR,
   HERO,
   ORBIT,
   ORBIT_SECONDS,
@@ -56,6 +58,12 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
   const [melt, setMelt] = useState<{ from: string; to: string } | null>(null);
 
   const stage = useRef<HTMLDivElement>(null);
+  const canvas = useRef<HTMLDivElement>(null);
+  /* Where the camera should park for a small drawing. Measured, not derived:
+     the ring turns, so a drawing's canvas position is a function of TIME, and
+     the static angle in the layout is only where it started. Flying to that
+     would send the camera to where the drawing used to be. */
+  const parked = useRef<string | null>(null);
   const camera = useRef<Animation | null>(null);
   const softening = useRef<Animation | null>(null);
   const caption = useRef<HTMLParagraphElement>(null);
@@ -94,10 +102,55 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
     return () => window.removeEventListener("popstate", fromHash);
   }, []);
 
-  const target = useMemo(
-    () => (at ? cameraFor(spotOf(at, set), ANCHOR[set], zoomFor(at, set)) : REST),
-    [at, set],
+  /**
+   * Standing in front of a small drawing, the camera moves so that the drawing
+   * stays roughly WHERE IT ALREADY WAS on screen, rather than snapping to the
+   * middle. Renato: "zooming into the smaller one should try to keep it around
+   * the same position in the frame". It reads as leaning in toward something you
+   * were already looking at instead of the world jumping under you.
+   *
+   * Measured from the DOM because the ring rotates: a drawing's canvas position
+   * is a function of time, and the angle in the layout is only where it began.
+   */
+  const aimAtOrbiter = useCallback(
+    (drawing: string): string | null => {
+      const el = marks.current[drawing];
+      const box = canvas.current;
+      const st = stage.current;
+      if (!el || !box || !st) return null;
+
+      const r = el.getBoundingClientRect();
+      const c = box.getBoundingClientRect();
+      if (!r.width || !c.width) return null;
+
+      // Where it sits on screen now, in canvas percent.
+      const sx = ((r.x + r.width / 2 - c.x) / c.width) * 100;
+      const sy = ((r.y + r.height / 2 - c.y) / c.height) * 100;
+
+      // Invert the camera to recover where it sits on the canvas itself.
+      const m = new DOMMatrix(getComputedStyle(st).transform);
+      const k = m.a || 1;
+      const px = (sx - (m.e / c.width) * 100) / k;
+      const py = (sy - (m.f / c.height) * 100) / k;
+
+      // Kept off the edges so the drawing is never half out of frame, and clear
+      // of the sentences on a wide screen.
+      const ax = Math.min(82, Math.max(tall ? 24 : 40, sx));
+      const ay = Math.min(78, Math.max(22, sy));
+
+      const kNear = Math.min(6, NEAR / orbiterH(drawing, set));
+      return `translate(${(ax - kNear * px).toFixed(3)}%, ${(ay - kNear * py).toFixed(3)}%) scale(${kNear.toFixed(4)})`;
+    },
+    [set, tall],
   );
+
+  const [aim, setAim] = useState<string | null>(null);
+
+  const target = useMemo(() => {
+    if (!at) return REST;
+    if (!isHero(at)) return aim ?? cameraFor(spotOf(at, set), ANCHOR[set], zoomFor(at, set));
+    return cameraFor(spotOf(at, set), ANCHOR[set], zoomFor(at, set));
+  }, [at, set, aim]);
 
   /* The flight, and the ink that flows with it. */
   useEffect(() => {
@@ -198,6 +251,8 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
   const go = useCallback(
     (drawing: string | null) => {
       if (drawing === at) return;
+      setAim(drawing && !isHero(drawing) ? aimAtOrbiter(drawing) : null);
+      parked.current = drawing;
       const how = at === null || drawing === null ? "pushState" : "replaceState";
       window.history[how](null, "", drawing ? `#${drawing}` : " ");
       setAt(drawing);
@@ -216,23 +271,28 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
 
   /** Left and right always move, round a ring that wraps. Never into a smaller
    *  drawing: those are reached by clicking one. */
-  const nextAspect = useCallback(() => {
-    const fromId = at ? ASPECT_OF[at] : null;
-    return fromId ? HERO[step(fromId)].drawing : null;
+  /** Onward means the next ASPECT when standing at an aspect, and the next
+   *  drawing OF THAT ASPECT when standing inside one. Renato: "when zoomed into
+   *  a small one, moving to the right rotates within the smaller ones of that
+   *  aspect until i zoom back". */
+  const onwardFrom = useCallback(() => {
+    if (!at) return null;
+    if (!isHero(at)) return stepWithin(at);
+    return HERO[step(ASPECT_OF[at])].drawing;
   }, [at]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") return back();
       if (e.key !== "ArrowRight" || !at) return;
-      const next = nextAspect();
+      const next = onwardFrom();
       if (!next) return;
       e.preventDefault();
       go(next);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [at, back, nextAspect, go]);
+  }, [at, back, onwardFrom, go]);
 
   const swipe = useRef<{ x: number; y: number } | null>(null);
   const onDown = (e: React.PointerEvent) => {
@@ -246,11 +306,11 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
     // Swiping left brings the next one in from the right, the way a map moves.
     // Only that way: the ring turns one direction.
     if (e.clientX - start.x > -SWIPE) return;
-    const next = nextAspect();
+    const next = onwardFrom();
     if (next) go(next);
   };
 
-  const onward = at ? nextAspect() : null;
+  const onward = at ? onwardFrom() : null;
 
   const weight = (drawing: string) => {
     if (melt && (drawing === melt.from || drawing === melt.to)) return "melting";
@@ -264,13 +324,14 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
 
   return (
     <div className="world" data-view={at ? "close" : "far"} onPointerDown={onDown} onPointerUp={onUp}>
-      <div className="canvas">
+      <div className="canvas" ref={canvas}>
         <div className="stage" ref={stage}>
           {/* The five. The whole of the far view. */}
           {Object.entries(HERO).map(([id, h], i) => (
             <button
               key={h.drawing}
               type="button"
+              data-mark={h.drawing}
               data-weight={weight(h.drawing)}
               ref={(el) => {
                 marks.current[h.drawing] = el;
@@ -330,6 +391,7 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
                 <button
                   type="button"
                   className="mark orbiter"
+                  data-mark={drawing}
                   data-weight={w}
                   ref={(el) => {
                     marks.current[drawing] = el;

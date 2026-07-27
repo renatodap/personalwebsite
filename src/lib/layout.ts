@@ -297,3 +297,20 @@ export function step(aspectId: string): string {
   const i = ORDER.indexOf(aspectId);
   return i < 0 ? ORDER[0] : ORDER[(i + 1) % ORDER.length];
 }
+
+/** The orbiters of one aspect, in the order they were seeded. */
+export function ringOrder(aspectId: string): string[] {
+  return Object.keys(ORBIT).filter((d) => ORBIT[d].aspect === aspectId);
+}
+
+/** Forward through one aspect's own drawings, wrapping. Standing in front of a
+ *  small one, onward means the next small one, not the next aspect. */
+export function stepWithin(drawing: string): string {
+  const own = ringOrder(ASPECT_OF[drawing]);
+  const i = own.indexOf(drawing);
+  return i < 0 ? own[0] : own[(i + 1) % own.length];
+}
+
+/** How large a small drawing grows when you stand in front of it, as a share of
+ *  canvas height. Generous: at that level it is the only thing being looked at. */
+export const NEAR = 34;
