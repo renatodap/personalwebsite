@@ -246,13 +246,14 @@ body {
   height: calc(var(--ohw) * 1%);
   translate: -50% -50%;
   pointer-events: auto;
-  /* The SAME negative delay as the ring, not the positive one. Reversed
-     direction plus a matching phase is what cancels exactly; with the sign
-     flipped the two rotations only agreed at the start and the drawing slowly
-     turned over as it travelled. Renato, 2026-07-27: "make sure all smaller
-     ones are at least within 10 degrees each way of being correctly oriented".
-     Cancelled exactly, they never leave 0. */
-  animation: turn var(--spin) linear infinite reverse;
+  /* An explicit NEGATIVE keyframe, not `reverse`. The parent runs +360 and this
+     runs -360 over the same duration from the same negative delay, so the two
+     sum to exactly zero at every instant and the drawing never leaves upright.
+     `reverse` plus a negative delay is the usual way to write this and it did
+     not cancel here: the drawing kept turning over as it travelled. Renato,
+     2026-07-27: "they have to be always correctly oriented even as they orbit
+     around, they have to internally re-rotate". */
+  animation: unturn var(--spin) linear infinite;
   animation-delay: calc(var(--turn) * var(--spin) * -1);
 }
 
@@ -262,6 +263,12 @@ body {
 @keyframes turn {
   to {
     rotate: 360deg;
+  }
+}
+
+@keyframes unturn {
+  to {
+    rotate: -360deg;
   }
 }
 
@@ -593,7 +600,12 @@ body {
   /* A contact sheet coming up in the tray. clip-path only, never opacity: a
      mark's opacity is its WEIGHT on the field, and an animation filling
      forwards would win over that forever. */
-  .mark {
+  /* :not(.orbiter) is load-bearing. `animation` is a shorthand, so this rule
+     was resetting animation-name on the orbiters and killing their
+     counter-rotation outright: same specificity, later in the file, so it won.
+     That is why they kept turning over however the delays were written. An
+     orbiter is never in the far view anyway, so it has nothing to develop. */
+  .mark:not(.orbiter) {
     animation: develop 620ms var(--ease-out) both;
     animation-delay: calc(var(--i) * 34ms);
   }
