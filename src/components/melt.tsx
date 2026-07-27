@@ -2,31 +2,47 @@
 
 import { useEffect, useRef } from "react";
 import { RATIO } from "@/lib/ratios";
-import { inkOf, order, type Ink } from "@/lib/ink";
+import { inkOf, order } from "@/lib/ink";
 import type { Spot } from "@/lib/layout";
 
 /**
- * One drawing comes apart, flows, and the next one builds itself out of it.
+ * One drawing comes apart into ink, the ink flows, and the next drawing builds
+ * itself out of it.
  *
- * The canvas lives INSIDE the stage, so it carries the camera with it and the
- * ink travels in the world rather than on the screen: moving right means the ink
- * actually streams rightward across the field. That is only affordable because
- * particles are dots. A hairline upscaled by the camera goes soft and it shows;
- * a 1.6px dot upscaled by the camera is still a dot. It is also why the settled
- * page is never a canvas: the moment the flow lands, this unmounts and the real
+ * WHAT WAS WRONG THE FIRST TIME, kept here because it is the whole lesson. The
+ * first build ran the canvas through a goo filter: blur to spread the alpha, a
+ * steep feColorMatrix to re-harden it. That is the metaball effect, it is built
+ * for solid blobs, and these are hairlines. On prod it fused a guitarist into
+ * three unrecognisable amoebas. The threshold is gone. Ink stays ink.
+ *
+ * FLOW IS MOTION, NOT A FILTER. Four things make it read as liquid:
+ *
+ *   1. STREAKS, NOT DOTS. Each particle is drawn as a line from where it was to
+ *      where it is. A square dot moving across the screen is sand; the same
+ *      point drawn as its own velocity is a fluid. This single change does more
+ *      than everything else combined.
+ *   2. ONE CURRENT. Every particle bows the SAME way, not alternating, so the
+ *      cloud moves like a body of water rather than a swarm. Alternating signs
+ *      cancel out and read as noise.
+ *   3. CURL. A low-frequency swirl, per particle out of phase, peaking at the
+ *      midpoint and resolving to nothing, so the stream turns over on itself
+ *      instead of sliding.
+ *   4. IT LEAVES FAST AND ARRIVES SLOW. Departure is near-linear, arrival is
+ *      heavily eased, so ink tears away and then settles. Symmetric easing is
+ *      what makes a morph look like a crossfade.
+ *
+ * The canvas lives inside the stage, so ink travels in the WORLD: moving right
+ * means it really streams rightward. Affordable because streaks are thin marks,
+ * which survive the camera's upscale where a hairline mask would not. The
+ * settled page is never a canvas: when the flow lands this unmounts and the
  * vector masks are what remain.
- *
- * The liquid is the goo filter on the element, blur spreading the alpha and a
- * static threshold re-hardening it, so scattered points fuse into one body at
- * the peak and resolve into the new figure. Only the blur animates. Animating
- * feTurbulence would be the more literal fluid and runs at about 15fps on a
- * phone, which is not a trade worth making.
  */
 
-const DOT = 1.6;
+/** Enough overlap that consecutive frames join into a continuous ribbon. */
+const WIDTH = 1.15;
 
-/** Perpendicular bow, in canvas percent, so ink arcs instead of sliding. */
-const BOW = 7;
+/** Swirl amplitude in canvas percent, at the midpoint. */
+const CURL = 5.5;
 
 export function Melt({
   from,
@@ -55,11 +71,9 @@ export function Melt({
     let cancelled = false;
     const started = performance.now();
 
-    // Sized to the stage in CSS and to the stage in device pixels, capped so a
-    // 4K monitor does not ask for a 30-megapixel backing store for 780ms.
     const box = el.parentElement?.getBoundingClientRect();
-    const w = Math.min(1600, Math.round(box?.width ?? 1200));
-    const h = Math.min(1600, Math.round(box?.height ?? 800));
+    const w = Math.min(1800, Math.round(box?.width ?? 1200));
+    const h = Math.min(1800, Math.round(box?.height ?? 800));
     el.width = w;
     el.height = h;
 
@@ -78,57 +92,90 @@ export function Melt({
       const ob = order(b);
       const n = Math.min(oa.length, ob.length);
 
-      // Canvas percent -> device pixels. Both boxes keep their own proportions,
-      // exactly as the layout sizes them, so a point sits where the mask puts it.
-      const boxOf = (spot: Spot, drawing: string) => {
-        const bh = spot.h;
-        const bw = (spot.h * RATIO[drawing] * h) / w;
-        return { x: spot.x - bw / 2, y: spot.y - bh / 2, w: bw, h: bh };
-      };
+      const boxOf = (spot: Spot, drawing: string) => ({
+        x: spot.x - (spot.h * RATIO[drawing] * h) / w / 2,
+        y: spot.y - spot.h / 2,
+        w: (spot.h * RATIO[drawing] * h) / w,
+        h: spot.h,
+      });
 
       const A = boxOf(fromSpot, from);
       const B = boxOf(toSpot, to);
 
-      // Ink leaves from one side and arrives on the other, so the figure comes
-      // apart in a direction instead of dissolving uniformly. Uniform is a
-      // crossfade wearing a costume.
-      const away = Math.sign(toSpot.x - fromSpot.x) || 1;
+      // Direction of the move, and the perpendicular the current bows along.
+      const dx = B.x + B.w / 2 - (A.x + A.w / 2);
+      const dy = B.y + B.h / 2 - (A.y + A.h / 2);
+      const len = Math.hypot(dx, dy) || 1;
+      const px = -dy / len;
+      const py = dx / len;
+
+      // Per particle: a phase so the swirl is out of step across the cloud, and
+      // a lead so the figure tears away from one side rather than all at once.
+      const phase = new Float32Array(n);
+      const lead = new Float32Array(n);
+      for (let i = 0; i < n; i++) {
+        const ax = a[oa[i] * 2];
+        const ay = a[oa[i] * 2 + 1];
+        phase[i] = (ax * 7.3 + ay * 4.1) % 1;
+        // Along the direction of travel, so departure sweeps.
+        lead[i] = dx >= 0 ? ax : 1 - ax;
+      }
+
+      const prev = new Float32Array(n * 2);
+      let seeded = false;
+
+      const at = (i: number, t: number, out: [number, number]) => {
+        // Renormalised so every particle still completes exactly at t = 1.
+        const local = Math.min(1, Math.max(0, (t - lead[i] * 0.3) / 0.7));
+
+        // Leaves fast, arrives slow: quintic ease-out is the settle.
+        const e = 1 - Math.pow(1 - local, 4);
+
+        const ia = oa[i] * 2;
+        const ib = ob[i] * 2;
+        const x0 = A.x + a[ia] * A.w;
+        const y0 = A.y + a[ia + 1] * A.h;
+        const x1 = B.x + b[ib] * B.w;
+        const y1 = B.y + b[ib + 1] * B.h;
+
+        // One current: every particle bows the same way. The swirl is a full
+        // turn of phase across the flight, so the stream rolls over itself.
+        const swell = Math.sin(Math.PI * e);
+        const curl = swell * CURL * Math.sin(phase[i] * Math.PI * 2 + e * Math.PI * 1.6);
+
+        out[0] = x0 + (x1 - x0) * e + px * curl;
+        out[1] = y0 + (y1 - y0) * e + py * curl;
+      };
+
+      const p: [number, number] = [0, 0];
 
       const frame = (now: number) => {
         const t = Math.min(1, (now - started) / duration);
+
         ctx.clearRect(0, 0, w, h);
-        ctx.fillStyle = ink;
+        ctx.strokeStyle = ink;
+        ctx.lineWidth = WIDTH;
+        ctx.lineCap = "round";
+        ctx.beginPath();
 
         for (let i = 0; i < n; i++) {
-          const ia = oa[i] * 2;
-          const ib = ob[i] * 2;
+          at(i, t, p);
+          const x = (p[0] / 100) * w;
+          const y = (p[1] / 100) * h;
 
-          const ax = a[ia];
-          const ay = a[ia + 1];
+          if (seeded) {
+            // The streak IS the particle's velocity. Drawn as one batched path
+            // so the whole cloud is a single stroke call per frame.
+            ctx.moveTo(prev[i * 2], prev[i * 2 + 1]);
+            ctx.lineTo(x, y);
+          }
 
-          // Stagger by position along the direction of travel, then renormalise,
-          // so every particle still completes exactly at t = 1.
-          const lead = away > 0 ? ax : 1 - ax;
-          const delay = lead * 0.34;
-          const local = Math.min(1, Math.max(0, (t - delay) / (1 - 0.34)));
-
-          // Exponential ease, matching the camera's own curve.
-          const e = 1 - Math.pow(1 - local, 3);
-
-          const x0 = A.x + ax * A.w;
-          const y0 = A.y + ay * A.h;
-          const x1 = B.x + b[ib] * B.w;
-          const y1 = B.y + b[ib + 1] * B.h;
-
-          // A bow perpendicular to travel, alternating by index, so the stream
-          // has body rather than being a bundle of parallel lines.
-          const arc = Math.sin(Math.PI * e) * BOW * (i % 2 ? 1 : -1) * 0.5;
-
-          const px = (x0 + (x1 - x0) * e) / 100;
-          const py = (y0 + (y1 - y0) * e + arc) / 100;
-
-          ctx.fillRect(px * w, py * h, DOT, DOT);
+          prev[i * 2] = x;
+          prev[i * 2 + 1] = y;
         }
+
+        if (seeded) ctx.stroke();
+        seeded = true;
 
         if (t < 1 && !cancelled) raf = requestAnimationFrame(frame);
         else if (!cancelled) done.current();

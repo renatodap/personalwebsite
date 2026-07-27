@@ -33,7 +33,11 @@ const GRID = 220;
  *  antialias to fairly transparent values at this raster size. */
 const FLOOR = 26;
 
-export const POINTS = 2600;
+/* Raised from 2600 after seeing it on prod: at 2600 the cloud is sparse enough
+   that the goo threshold fuses isolated dots into amoebas and the figure stops
+   being legible mid-flight. Density is what makes it read as ink coming apart
+   rather than as blobs. */
+export const POINTS = 5200;
 
 function collect(data: Uint8ClampedArray, w: number, h: number, want: number): Ink {
   // One pass to find the ink, then an even stride through it. A stride rather

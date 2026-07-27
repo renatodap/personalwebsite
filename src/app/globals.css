@@ -33,15 +33,6 @@
   --flight: 700ms;
 }
 
-/* The blur half of the liquid. Registered so it can be animated at all: an
-   unregistered custom property is a token string and interpolates by swapping,
-   not by tweening. The threshold half is the SVG filter in page.tsx. */
-@property --goo {
-  syntax: "<length>";
-  inherits: false;
-  initial-value: 0px;
-}
-
 * {
   box-sizing: border-box;
   margin: 0;
@@ -212,20 +203,11 @@ body {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  filter: blur(var(--goo)) url(#threshold);
-  animation: goo 820ms linear both;
-}
-
-@keyframes goo {
-  0% {
-    --goo: 0px;
-  }
-  46% {
-    --goo: 5px;
-  }
-  100% {
-    --goo: 0px;
-  }
+  /* NO goo filter. The first build blurred this canvas and re-hardened the
+     alpha with a steep feColorMatrix, which is the metaball effect: it is built
+     for solid blobs, and these are hairlines. On prod it fused a guitarist into
+     three unrecognisable amoebas. The flow comes from the MOTION now, in
+     melt.tsx: velocity streaks along one coherent curling current. */
 }
 
 /* The five childhood drawings. Invisible standing back, present standing close,
@@ -313,8 +295,12 @@ body {
   color: var(--ink-70);
 }
 
+/* Focus moves here on every view change so a screen reader announces the new
+   place. A rectangle around the sentences reads as a bug to everyone else, so
+   the ring becomes a rule in the margin: present, findable, not a box. */
 .say:focus-visible {
-  outline-offset: 8px;
+  outline: none;
+  box-shadow: -12px 0 0 -10px var(--ink);
 }
 
 /* ── The exits ─────────────────────────────────────────────────────────────
