@@ -23,9 +23,23 @@
   --ink-40: rgb(244 239 230 / 0.4);
   --ink-18: rgb(244 239 230 / 0.18);
 
+  /* The melt canvas paints with a real colour rather than a token with alpha:
+     the goo threshold works on alpha, so ink that arrives already translucent
+     never crosses it and the flow never resolves. */
+  --ink-solid: #f4efe6;
+
   --pad: clamp(16px, 2.6vw, 40px);
   --ease-out: cubic-bezier(0.22, 1, 0.32, 1);
   --flight: 700ms;
+}
+
+/* The blur half of the liquid. Registered so it can be animated at all: an
+   unregistered custom property is a token string and interpolates by swapping,
+   not by tweening. The threshold half is the SVG filter in page.tsx. */
+@property --goo {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
 }
 
 * {
@@ -171,6 +185,47 @@ body {
 
 .mark[data-weight="far"] {
   opacity: 0.14;
+}
+
+/* While its ink is in the air, the mask is not drawn at all: the canvas is
+   holding both figures, and painting the mask underneath would show the drawing
+   arrive before its ink does. */
+.mark[data-weight="melting"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── The melt ──────────────────────────────────────────────────────────────
+   One drawing comes apart, flows across the field, and the next builds itself
+   out of it. Inside the stage, so the ink travels in the WORLD: moving right
+   means the ink actually streams rightward. Affordable only because particles
+   are dots, and a dot survives the camera's upscale where a hairline does not.
+
+   The liquid is blur spreading the alpha and a static threshold re-hardening
+   it, so scattered points fuse into one body at the peak and resolve into the
+   new figure. Only the blur animates. Animating feTurbulence would be the more
+   literal fluid and runs at about 15fps on a phone, which is not a trade worth
+   making. Research: docs/research/2026-07-27-liquid-deconstruct-reconstruct.md */
+.melt {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  filter: blur(var(--goo)) url(#threshold);
+  animation: goo 820ms linear both;
+}
+
+@keyframes goo {
+  0% {
+    --goo: 0px;
+  }
+  46% {
+    --goo: 5px;
+  }
+  100% {
+    --goo: 0px;
+  }
 }
 
 /* The five childhood drawings. Invisible standing back, present standing close,

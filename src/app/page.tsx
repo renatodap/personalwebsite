@@ -38,6 +38,16 @@ export default async function Page() {
       <Header s={settings} />
       <Field aspects={aspects} contact={<Contact s={settings} />} />
 
+      {/* The threshold half of the liquid. Blur is applied in CSS and this
+          re-hardens the alpha it spreads, so scattered ink fuses into one body
+          instead of ghosting. It touches alpha only, so the ink keeps its exact
+          colour. Server-rendered, because it must exist before the first melt. */}
+      <svg width="0" height="0" aria-hidden="true" focusable="false" style={{ position: "absolute" }}>
+        <filter id="threshold" x="-30%" y="-30%" width="160%" height="160%" colorInterpolationFilters="sRGB">
+          <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 24 -9" />
+        </filter>
+      </svg>
+
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

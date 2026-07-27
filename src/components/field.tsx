@@ -13,6 +13,7 @@ import {
 } from "@/lib/layout";
 import { RATIO } from "@/lib/ratios";
 import type { Aspect } from "@/lib/content";
+import { Melt } from "@/components/melt";
 
 /**
  * One space, one camera.
@@ -37,11 +38,13 @@ const FLIGHT = 700;
 const EASE = "cubic-bezier(0.22, 1, 0.32, 1)";
 const REDUCED = "(prefers-reduced-motion: reduce)";
 const SWIPE = 40;
+const MELT = 820;
 
 export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactNode }) {
   const [at, setAt] = useState<string | null>(null);
   const [hover, setHover] = useState<string | null>(null);
   const [tall, setTall] = useState(false);
+  const [melt, setMelt] = useState<{ from: string; to: string } | null>(null);
 
   const stage = useRef<HTMLDivElement>(null);
   const camera = useRef<Animation | null>(null);
@@ -49,6 +52,7 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
   const caption = useRef<HTMLParagraphElement>(null);
   const marks = useRef<Record<string, HTMLButtonElement | null>>({});
   const painted = useRef(false);
+  const was = useRef<string | null>(null);
 
   /** Every drawing, with the aspect it belongs to and where it stands. */
   const world = useMemo(
@@ -98,10 +102,19 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
     return cameraFor(spot, tall ? ANCHOR.tall : ANCHOR.wide, tall ? CLOSE.tall : CLOSE.wide);
   }, [at, spotOf, tall]);
 
-  /* The flight. */
+  /* The flight, and the ink that flows with it. */
   useEffect(() => {
     const el = stage.current;
     if (!el) return;
+
+    // Moving between two drawings melts one into the other. Arriving from the
+    // wide view, or leaving for it, does not: there is no single figure being
+    // left behind, so there is nothing to come apart.
+    const previous = was.current;
+    was.current = at;
+    const between = previous !== null && at !== null && previous !== at;
+    const still = window.matchMedia(REDUCED).matches;
+    setMelt(between && !still ? { from: previous, to: at } : null);
 
     // First paint, and any change of arrangement, land without a flight: there
     // is nothing to be continuous with.
@@ -170,7 +183,7 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
       [{ filter: "blur(0px)" }, { filter: "blur(2.4px)", offset: 0.42 }, { filter: "blur(0px)" }],
       { duration: FLIGHT, easing: "linear" },
     );
-  }, [target]);
+  }, [target, at]);
 
   /* A view changed without the document changing, so the two things a real
      navigation does for free have to be done by hand: move focus, and announce.
@@ -260,6 +273,10 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
 
   /** on: full ink. dim: field texture. mute: another aspect while one is read. */
   const weight = (m: (typeof world)[number]) => {
+    // While the ink is in the air, neither end of the melt is drawn: the canvas
+    // is holding both of them, and painting the mask underneath would show the
+    // figure arriving before its ink does.
+    if (melt && (m.drawing === melt.from || m.drawing === melt.to)) return "melting";
     if (m.drawing === at) return "on";
     if (at) return here && m.aspect === here.aspect ? "near" : "far";
     if (m.place.deep) return "deep";
@@ -317,6 +334,18 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
               </button>
             );
           })}
+
+          {melt ? (
+            <Melt
+              key={`${melt.from}->${melt.to}`}
+              from={melt.from}
+              to={melt.to}
+              fromSpot={spotOf(melt.from)!}
+              toSpot={spotOf(melt.to)!}
+              duration={MELT}
+              onDone={() => setMelt(null)}
+            />
+          ) : null}
         </div>
 
         {/* The five labels sit over the five largest drawings and never move
