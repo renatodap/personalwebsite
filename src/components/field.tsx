@@ -290,6 +290,8 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
                   "--ty": h.tall.y,
                   "--th": h.tall.h,
                   "--i": i,
+                  maskImage: `url(/drawings/detail-${h.drawing}.svg)`,
+                  WebkitMaskImage: `url(/drawings/detail-${h.drawing}.svg)`,
                 } as React.CSSProperties
               }
               onPointerEnter={() => setHover(id)}
@@ -342,6 +344,8 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
                       "--oh": o.h,
                       "--turn": o.turn,
                       "--spin": `${ORBIT_SECONDS}s`,
+                      maskImage: `url(/drawings/detail-${drawing}.svg)`,
+                      WebkitMaskImage: `url(/drawings/detail-${drawing}.svg)`,
                     } as React.CSSProperties
                   }
                   onClick={() => go(drawing)}

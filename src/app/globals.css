@@ -217,9 +217,13 @@ body {
 }
 
 .orbiter {
+  /* Restated in full: the base .mark rule positions by the hero variables, which
+     an orbiter does not have. Leaving them to resolve against nothing gave an
+     invalid height and a bare box. */
   left: 50%;
   top: 0;
   height: calc(var(--oh) * 1%);
+  translate: -50% -50%;
   pointer-events: auto;
   animation: turn var(--spin) linear infinite reverse;
   animation-delay: calc(var(--turn) * var(--spin));
