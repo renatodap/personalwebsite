@@ -19,6 +19,7 @@ import {
 import { RATIO } from "@/lib/ratios";
 import type { Aspect } from "@/lib/content";
 import { Melt } from "@/components/melt";
+import { inkOf } from "@/lib/ink";
 
 /**
  * One space, one camera, three levels.
@@ -180,6 +181,19 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
   useEffect(() => {
     if (at) caption.current?.focus({ preventScroll: true });
   }, [at]);
+
+  /* Sample the five ahead of time, once the page is idle. Every melt is between
+     two of them, so this is the whole working set, and it means the first one is
+     as fluid as the fifth instead of arriving a beat late. */
+  useEffect(() => {
+    const warm = () => {
+      for (const h of Object.values(HERO)) void inkOf(h.drawing, RATIO[h.drawing]);
+    };
+    const idle = (window as unknown as { requestIdleCallback?: (cb: () => void) => number })
+      .requestIdleCallback;
+    if (idle) idle(warm);
+    else setTimeout(warm, 1200);
+  }, []);
 
   const go = useCallback(
     (drawing: string | null) => {

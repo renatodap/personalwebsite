@@ -39,6 +39,20 @@ export default async function Page() {
       <Field aspects={aspects} contact={<Contact s={settings} />} />
 
 
+      {/* The threshold half of the liquid. Blur spreads the alpha of the ink
+          capsules and this re-hardens it, so masses that come near each other
+          fuse and part the way droplets do.
+
+          This failed the first time and the reason is worth keeping: it was
+          applied to a cloud of 1px dots, and a threshold on isolated dots makes
+          amoebas. It needs bodies, which is what WIDTH in melt.tsx now supplies.
+          It touches alpha only, so the ink keeps its exact colour. */}
+      <svg width="0" height="0" aria-hidden="true" focusable="false" style={{ position: "absolute" }}>
+        <filter id="threshold" x="-30%" y="-30%" width="160%" height="160%" colorInterpolationFilters="sRGB">
+          <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 15 -6.2" />
+        </filter>
+      </svg>
+
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

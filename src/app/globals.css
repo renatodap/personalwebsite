@@ -31,6 +31,15 @@
   --pad: clamp(16px, 2.6vw, 40px);
   --ease-out: cubic-bezier(0.22, 1, 0.32, 1);
   --flight: 700ms;
+  --melt: 1500ms;
+}
+
+/* Registered so it can be animated at all: an unregistered custom property is a
+   token string and interpolates by swapping, not by tweening. */
+@property --goo {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 1px;
 }
 
 * {
@@ -273,11 +282,27 @@ body {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  /* NO goo filter. The first build blurred this canvas and re-hardened the
-     alpha with a steep feColorMatrix, which is the metaball effect: it is built
-     for solid blobs, and these are hairlines. On prod it fused a guitarist into
-     three unrecognisable amoebas. The flow comes from the MOTION now, in
-     melt.tsx: velocity streaks along one coherent curling current. */
+  /* The goo, correctly this time. The first attempt blurred a cloud of 1px dots
+     and re-hardened the alpha, which is the metaball effect applied to isolated
+     points: it fused a guitarist into three amoebas. It works on BODIES, and
+     melt.tsx now draws thick capsules, so the same filter reads as liquid
+     merging and parting instead of as blobs.
+
+     Blur never reaches zero and never gets large: at 1px the threshold is
+     effectively a crisp edge, so the handover to and from the vector mask is
+     invisible, and at 6px masses merge without the figure dissolving. */
+  filter: blur(var(--goo)) url(#threshold);
+  animation: goo var(--melt) linear both;
+}
+
+@keyframes goo {
+  0%,
+  100% {
+    --goo: 1px;
+  }
+  50% {
+    --goo: 4.5px;
+  }
 }
 
 /* The five childhood drawings. Invisible standing back, present standing close,

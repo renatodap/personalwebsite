@@ -38,8 +38,22 @@ import type { Spot } from "@/lib/layout";
  * vector masks are what remain.
  */
 
-/** Enough overlap that consecutive frames join into a continuous ribbon. */
-const WIDTH = 1.05;
+/**
+ * Ink has BODY. This is the number that decides whether the effect reads as
+ * liquid or as sand, and it was 1.05 for three builds.
+ *
+ * A capsule this thick, drawn from where the particle was to where it is, gives
+ * squash and stretch for free: a mark travelling fast draws a long capsule and a
+ * mark at rest draws a circle. That is the whole of the After Effects liquid
+ * grammar, and it falls out of the geometry rather than needing to be authored.
+ *
+ * 3.4, not 7.5. At 7.5 the threshold had so much body to work with that the
+ * figure filled in solid: gorgeous as a molten mass mid-flight, but it could
+ * never resolve back to a line drawing, and the handover to the vector mask
+ * would have popped. This is about twice the drawn line, which is enough for
+ * the goo to find and little enough to still read as ink.
+ */
+const WIDTH = 3.4;
 
 /** Swirl amplitude in canvas percent, at the midpoint. */
 /* Small, and it is a LANE offset rather than a swirl. Renato, 2026-07-27: "i
@@ -51,7 +65,10 @@ const LANE = 4.5;
 
 /** Frames of streak kept behind each particle. A one-frame streak is a dash; a
  *  trail is a filament, and filaments are what a fluid is made of. */
-const TRAIL = 9;
+/* One. A long trail of THIN marks is a filament; a long trail of thick ones is
+   a smear, and the threshold turns a smear into a puddle. The body now comes
+   from WIDTH, so the trail goes back to a single segment. */
+const TRAIL = 1;
 
 export function Melt({
   from,
@@ -78,7 +95,13 @@ export function Melt({
 
     let raf = 0;
     let cancelled = false;
-    const started = performance.now();
+
+    /* The clock starts when the INK is ready, not when the effect fires.
+       Sampling has to fetch and decode two SVGs the first time a pair is used,
+       and starting the clock before that means the first frame renders at
+       whatever t the delay had already consumed: on a cold pair the whole melt
+       was skipped. This is why it looked like nothing happened. */
+    let started = 0;
 
     const box = el.parentElement?.getBoundingClientRect();
     const w = Math.min(1800, Math.round(box?.width ?? 1200));
@@ -92,11 +115,22 @@ export function Melt({
     const ink = getComputedStyle(el).getPropertyValue("--ink-solid").trim() || "#f4efe6";
 
     Promise.all([inkOf(from, RATIO[from]), inkOf(to, RATIO[to])]).then(([a, b]) => {
-      if (cancelled || a.length === 0 || b.length === 0) {
+      // A cancelled effect must NOT report done: that is the teardown of a run
+      // being replaced, and reporting it clears the state that is about to
+      // render the replacement. In development React invokes effects twice, so
+      // the first run cancelled the second before it drew a frame and the melt
+      // never appeared at all.
+      if (cancelled) return;
+
+      // No ink means the drawing would not decode. The camera still flies and
+      // the masks still render, so nothing on the page is lost.
+      if (a.length === 0 || b.length === 0) {
         done.current();
         return;
       }
 
+      // Every third point: at WIDTH 7.5 the capsules overlap several deep
+      // already, so the rest is fill rate spent on pixels that are covered.
       const oa = order(a);
       const ob = order(b);
       const n = Math.min(oa.length, ob.length);
@@ -193,12 +227,15 @@ export function Melt({
 
 
       const frame = (now: number) => {
+        if (!started) started = now;
         const t = Math.min(1, (now - started) / duration);
 
         ctx.clearRect(0, 0, w, h);
         ctx.strokeStyle = ink;
-        ctx.lineWidth = WIDTH;
+        // Scaled with the canvas so the body is the same on any screen.
+        ctx.lineWidth = (WIDTH * w) / 1400;
         ctx.lineCap = "round";
+        ctx.lineJoin = "round";
         ctx.beginPath();
 
         for (let i = 0; i < n; i++) {
