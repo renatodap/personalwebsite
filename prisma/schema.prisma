@@ -1,9 +1,15 @@
-// renatodap.me - a cyanotype plate book of one person in motion.
+// renatodap.me - The Field. One screen, eighteen versions of one person, five
+// ways in.
 //
-// The unit is the frame, and the order of frames IS the argument, so order is
-// data rather than markup. The old schema modelled a bill of materials (itemNo,
-// qty, material, isAnchor); that world was retired on 2026-07-26 and so are its
-// tables. See DESIGN.md for the world contract.
+// The unit is the ASPECT: a part of him, its sentences, and the drawings that
+// belong to it. Content is data because content changes; where a drawing sits on
+// the field and how large it is are NOT here, because that is design and design
+// on this site is code (src/lib/layout.ts). A drawing with no entry there simply
+// never stands on the field, which is how the childhood drawings stay hidden
+// until someone goes in.
+//
+// Supersedes the Frame/Plate model of the retired Plate Sequence world, which
+// described a vertical scroll that no longer exists. See DESIGN.md.
 
 generator client {
   provider = "prisma-client-js"
@@ -16,13 +22,15 @@ datasource db {
 
 /// Single row (id = "main"). The literal facts, and nothing else.
 ///
-/// These exist because 57% of viewing time never leaves the first screen: a
-/// visitor who leaves in five seconds still has to leave knowing who this is.
+/// These exist because most visits never get past the first screen: someone who
+/// leaves in five seconds still has to leave knowing who this is.
 model SiteSetting {
   id String @id @default("main")
 
-  subjectName     String @default("Renato Prado")
-  subjectRole     String @default("Lead software engineer")
+  subjectName String @default("Renato Prado")
+
+  /// "Lead" removed 2026-07-26 at Renato's instruction.
+  subjectRole     String @default("Software engineer")
   subjectLocation String @default("Indianapolis")
 
   email       String @default("")
@@ -34,61 +42,52 @@ model SiteSetting {
   updatedAt DateTime @updatedAt
 }
 
-/// How a frame is composed. Not derivable from plate count: a two-plate RUN
-/// (serve, tennis) and a two-plate PAIR (the wear frame) are different
-/// components with different scale, snapping and caption rules.
-enum FrameKind {
-  /// One drawing, full viewport height, caption set in the left margin. Snaps.
-  PLATE
+/// One part of him. Five of them, and every drawing belongs to exactly one.
+model Aspect {
+  /// The slug, and the URL fragment: /#music. Chosen rather than generated,
+  /// because it is a shareable address and has to stay stable.
+  id String @id
 
-  /// Two to four drawings sized by column width, ~78dvh. Reads as the quiet
-  /// between the big pictures, so it deliberately does not snap.
-  RUN
+  /// Shown beside the hero on the field, and as the aspect's heading. One word.
+  title String
 
-  /// Two drawings at equal weight, no caption. Reserved for the wear frame,
-  /// which is the emotional peak of the page. Snaps.
-  PAIR
-}
-
-/// One frame of the sequence.
-model Frame {
-  id   String    @id @default(cuid())
-  kind FrameKind @default(PLATE)
-
-  /// Empty is normal and expected: eight of the twelve frames carry no words.
-  /// A newline separates lines; second and later lines render at --ink-70.
-  /// Never captions a childhood plate - the adjacency is the statement, and a
-  /// caption would say the thing the structure is there to imply.
-  caption String @default("") @db.Text
+  /// One or two sentences, newline separated. A third would be one too many:
+  /// on this site a sentence has to earn its place against a drawing.
+  body String @default("") @db.Text
 
   sortOrder Int     @default(0)
   isActive  Boolean @default(true)
 
-  plates Plate[]
+  marks Mark[]
 
   @@index([isActive, sortOrder])
 }
 
-/// One drawing inside a frame.
-model Plate {
-  id      String @id @default(cuid())
-  frameId String
-  frame   Frame  @relation(fields: [frameId], references: [id], onDelete: Cascade)
+/// One drawing inside an aspect.
+model Mark {
+  id       String @id @default(cuid())
+  aspectId String
+  aspect   Aspect @relation(fields: [aspectId], references: [id], onDelete: Cascade)
 
   /// Slug only. Resolves to /drawings/detail-<drawing>.svg
   ///
-  /// Carries no size or zoom field on purpose. Figure size is normalised in the
-  /// ASSET, by trimming each viewBox to its own artwork, so the renderer only
-  /// ever needs `mask-size: contain` and can never crop a drawing.
+  /// Carries no size or position field on purpose. Both live in layout.ts, and a
+  /// knob for either appearing here would mean the composition had become
+  /// editable, which is the one thing this design is built to prevent.
   drawing String
 
   /// Accessible name, required. A mask-rendered drawing is a background, so the
-  /// SVG's own <title> is never exposed to assistive technology.
+  /// SVG's own <title> never reaches assistive technology.
   alt String @default("")
+
+  /// Exactly one per aspect. The only interactive drawing: the one that grows
+  /// when you go in, and the one that morphs into its neighbour when you move
+  /// sideways.
+  isHero Boolean @default(false)
 
   sortOrder Int @default(0)
 
-  @@index([frameId, sortOrder])
+  @@index([aspectId, sortOrder])
 }
 
 model AdminUser {

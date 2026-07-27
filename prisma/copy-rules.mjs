@@ -35,12 +35,15 @@ export const BANNED_PHRASES = [
  * heuristic: any regex broad enough to catch a company name would also flag
  * Indianapolis and Brazil, which belong on the page.
  */
+/// "Rose-Hulman" was on this list and was removed 2026-07-26 at Renato's
+/// instruction: "just mention cs degree rose hulman 2026". The list exists to
+/// keep CLIENT and EMPLOYER names off the site. His own school is neither, and
+/// he asked for it by name. Do not restore it.
 export const FORBIDDEN_ENTITIES = [
   "Aslan",
   "IMENSIAH",
   "AllAboutFood",
   "Accumulate",
-  "Rose-Hulman",
   "Deco Faria",
   "Andre Faria",
   "André Faria",

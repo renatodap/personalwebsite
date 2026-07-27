@@ -1,35 +1,32 @@
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Plate Sequence. A cyanotype plate book of one person in motion.
+   THE FIELD. One screen, one person, twenty-three drawings, one camera.
 
-   Two colours and one type family. The drawings are the display element, so
-   nothing here competes with them: there is no headline size on this site.
-   World contract in DESIGN.md.
+   Zooming in does not swap screens: it moves a camera over the same canvas, so
+   what you see close up is what you saw far away, larger, in its own place.
+   Two colours and one type family. World contract in DESIGN.md.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
-  /* Prussian blue ground and warm rag-paper ink. The ink is deliberately WARM:
-     in a cyanotype the white IS the paper, and paper is not blue-cast white.
-     Measured against --field, not assumed:
+  /* Prussian blue ground and warm rag-paper ink. The ink is WARM: in a cyanotype
+     the white IS the paper, and paper is not blue-cast white. Measured against
+     --field, not assumed:
        --ink      12.8:1  AAA at every size
        --ink-70    7.0:1  AAA for body
-       --ink-45    3.75:1 fails AA for text, passes the 3:1 non-text floor */
+       --ink-55    4.9:1  AA for text, and the field texture
+       --ink-40    3.4:1  non-text only, above the 3:1 floor (WCAG 1.4.11) */
   --field: #0b2a45;
   --ink: #f4efe6;
   --ink-70: rgb(244 239 230 / 0.7);
-  --ink-45: rgb(244 239 230 / 0.45);
+  --ink-55: rgb(244 239 230 / 0.55);
+  --ink-40: rgb(244 239 230 / 0.4);
+  --ink-18: rgb(244 239 230 / 0.18);
 
-  --pad: clamp(20px, 3.4vw, 52px);
-  --measure: 1360px;
-
-  /* Exponential ease-out. The built-in curves are too weak to read as decided. */
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --pad: clamp(16px, 2.6vw, 40px);
+  --ease-out: cubic-bezier(0.22, 1, 0.32, 1);
+  --flight: 700ms;
 }
-
-/* There is no light mode and no accent colour. The world is a single pinned
-   theme, on Renato's instruction, so the surface never inverts and no section
-   flips ground. */
 
 * {
   box-sizing: border-box;
@@ -37,24 +34,26 @@
   padding: 0;
 }
 
-html {
+html,
+body {
+  height: 100%;
+  /* NOTHING SCROLLS. That is the design, not an oversight. */
+  overflow: hidden;
   background: var(--field);
+  overscroll-behavior: none;
+}
+
+html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
-
-  /* `proximity`, never `mandatory`. Mandatory fights the reader on a page this
-     long and can trap keyboard users between snap points. */
-  scroll-snap-type: y proximity;
 }
 
 body {
-  background: var(--field);
   color: var(--ink);
   font-family: var(--font-archivo), system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.5;
-  overflow-x: hidden;
 }
 
 ::selection {
@@ -62,10 +61,9 @@ body {
   color: var(--field);
 }
 
-/* No accent exists, so focus is drawn in ink. */
 :focus-visible {
   outline: 2px solid var(--ink);
-  outline-offset: 3px;
+  outline-offset: 4px;
 }
 
 .sr-only {
@@ -77,203 +75,274 @@ body {
   white-space: nowrap;
 }
 
-/* ── The plate ─────────────────────────────────────────────────────────────
-   One drawing. Rendered as a mask so the ink stays token-driven and the browser
-   caches the file instead of the DOM carrying 15-50 KB of path data. Nothing on
-   this site animates individual paths, so inline SVG is never used.            */
-.plate {
-  display: block;
-  aspect-ratio: 1;
+.world {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* ── The canvas ────────────────────────────────────────────────────────────
+   A FIXED ratio, which is what makes the composition exact rather than merely
+   approximate: a drawing's width in canvas percent is then a constant instead
+   of something that swells on a narrow window and collides with its neighbour.
+   Surplus viewport is bare field, invisible because the ground is flat.
+
+   svh, not dvh: dvh follows the iOS address bar as it animates, so everything
+   sized in it recalculates continuously. This page never scrolls, so the bars
+   never move and svh is the stable number.                                    */
+.canvas {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  width: min(100vw, calc(100svh * 1.6));
+  aspect-ratio: 1.6;
+}
+
+/* ── The stage ─────────────────────────────────────────────────────────────
+   The only thing the camera moves. transform-origin 0 0 is load-bearing: the
+   camera arithmetic in layout.ts solves for it.
+
+   NO `will-change: transform` ANYWHERE. It pins the layer to a fixed bitmap
+   that never re-rasters under transform, which would leave every zoomed drawing
+   permanently soft. Its appearance here is a bug, not an optimisation.        */
+.stage {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+  transform: translate(0%, 0%) scale(1);
+}
+
+/* ── A drawing ─────────────────────────────────────────────────────────────
+   A mask, so the ink stays token-driven and the browser caches the file instead
+   of the DOM carrying 15-50 KB of path data per figure.
+
+   Sized by HEIGHT with aspect-ratio giving the width, so the box IS the
+   drawing's shape and figures pack against each other honestly. `contain`, so
+   nothing is ever cropped. Every one is a real button: click, tap, Enter and
+   Space all work, and hover is decoration only, because a phone has no hover.  */
+.mark {
+  position: absolute;
+  left: calc(var(--wx) * 1%);
+  top: calc(var(--wy) * 1%);
+  height: calc(var(--wh) * 1%);
+  aspect-ratio: var(--r);
+  translate: -50% -50%;
+
+  appearance: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: zoom-in;
   background-color: var(--ink);
+
   mask-repeat: no-repeat;
   mask-position: center;
+  mask-size: contain;
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
-
-  /* `contain` fits the whole drawing inside the box and can never crop. That is
-     a hard requirement: these are drawings of a person, and clipping a head is
-     not a tradeoff worth making.
-     Consistent figure size comes from the ASSETS instead, via
-     scripts/tighten_viewbox.mjs, which trims each viewBox to its artwork. After
-     that every drawing fills its own box, so figure heights land within 75-100%
-     of the plate with no per-drawing zoom anywhere. */
-  mask-size: contain;
   -webkit-mask-size: contain;
 
-  /* `paint` only. `strict` would add size containment, which makes the box lay
-     out as if empty and collapses the aspect ratio to a sliver. */
-  contain: paint;
+  transition: opacity 340ms var(--ease-out);
 }
 
-/* ── Frames ────────────────────────────────────────────────────────────────
-   Three kinds and nothing else. See DESIGN.md.                                */
-.frame {
-  position: relative;
-
-  /* Horizontal only. Vertical space comes from min-height plus centring, so
-     there is no padding to fight the min-height for control of frame height. */
-  padding-inline: var(--pad);
+/* Three weights standing back, because only about four things are read in
+   parallel and eighteen equal marks would be texture with no way in. */
+.mark[data-weight="on"] {
+  opacity: 1;
+  cursor: zoom-out;
 }
 
-/* NO `content-visibility: auto` here, deliberately.
-   It was added on the assumption that 23 masks would stall first paint on a
-   mid-range phone. That assumption was inherited from the retired design, which
-   put many drawings on screen at once; this one shows at most four per frame.
-   Measured, it bought very little, and it cost real blank frames: skipped
-   subtrees paint as empty ground, which is catastrophic on a page whose entire
-   content is images. Total mask payload is ~0.64 MB across all 23, each cached
-   individually by the browser. */
-
-.frame--plate,
-.frame--pair {
-  min-height: 100dvh;
-  scroll-snap-align: start;
+.mark[data-weight="dim"] {
+  opacity: 0.55;
 }
 
-/* PLATE: figure held right of centre, caption set in the left margin with its
-   right edge pointing at the figure. The large quiet void on the left is the
-   composition, not leftover space. */
-.frame--plate {
+/* Hovering one aspect lights every drawing of it, wherever it sits, and drops
+   the rest. The grouping is shown without drawing a single line. */
+.mark[data-weight="mute"] {
+  opacity: 0.16;
+}
+
+/* Standing close: its own family stays legible, the rest of the field recedes
+   but never disappears, because seeing where you are is the whole point. */
+.mark[data-weight="near"] {
+  opacity: 0.5;
+}
+
+.mark[data-weight="far"] {
+  opacity: 0.14;
+}
+
+/* The five childhood drawings. Invisible standing back, present standing close,
+   beside the adult they answer, with nothing written about it. */
+.mark[data-weight="deep"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .mark:hover {
+    opacity: 1;
+  }
+}
+
+.mark:focus-visible {
+  opacity: 1;
+}
+
+/* ── The labels ────────────────────────────────────────────────────────────
+   Five words over the five largest drawings. This IS the navigation, and it is
+   always visible: the interaction is not discoverable otherwise.              */
+.tags {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.tag {
+  font-size: 11px;
+  font-weight: 600;
+  font-variation-settings: "wdth" 118;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ink-40);
+}
+
+.tags .tag {
+  position: absolute;
+  left: calc(var(--wx) * 1%);
+  top: calc((var(--wy) + var(--wh) / 2) * 1%);
+  translate: -50% 10px;
+  opacity: 0;
+  transition: opacity 260ms var(--ease-out), color 260ms var(--ease-out);
+}
+
+.tags .tag[data-lit] {
+  opacity: 1;
+  color: var(--ink-55);
+}
+
+/* ── The words ─────────────────────────────────────────────────────────────
+   They do not replace the view. They arrive beside it.                        */
+.says {
+  position: absolute;
+  left: var(--pad);
+  top: 50%;
+  translate: 0 -50%;
+  width: min(30%, 36ch);
+  pointer-events: none;
+}
+
+.say {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  align-content: center;
-  column-gap: clamp(28px, 5vw, 88px);
-
-  /* Without this the plate hugs the right edge of the window on a wide screen
-     and the left column becomes an unbounded void rather than a margin. */
-  max-width: calc(var(--measure) + var(--pad) * 2);
-  margin-inline: auto;
-}
-
-.frame--plate .plate {
-  grid-column: 2;
-  grid-row: 1;
-  /* Height drives the square, capped against viewport width so a narrow window
-     shrinks the plate instead of squeezing it. */
-  height: min(68vh, 56vw);
-  margin-right: clamp(0px, 3vw, 48px); /* clear the rail */
-}
-
-/* Words shrink the plate; silence enlarges it. A wordless frame has nothing to
-   balance the left margin, so the figure grows to become the composition
-   itself. This also puts the emphasis where it belongs: the peak and the
-   ending are the two biggest things on the site, and both are silent.
-
-   Capped at 78vh rather than higher because the header is fixed: now that the
-   viewBoxes are trimmed, ink reaches the box edge, so a taller plate collides
-   with the name on a laptop-height window. */
-.frame--solo .plate {
-  height: min(78vh, 64vw);
-}
-
-.frame--plate .cap {
-  grid-column: 1;
-  grid-row: 1;
-  justify-self: end;
-  text-align: right;
-  padding-bottom: 7vh;
-  max-width: 27ch;
-}
-
-/* RUN: two to four plates sized by COLUMN WIDTH. Sizing a run by viewport
-   height is the mistake that makes a traced line vanish: at 22vh the drum kit
-   is nearly invisible. Shorter than a plate and deliberately not a snap point,
-   so it reads as the quiet between the big pictures. */
-.frame--run {
-  min-height: 70dvh;
-  display: grid;
-  align-content: center;
-  justify-items: center;
-  gap: 44px;
-}
-
-.strip {
-  /* NOT `margin-inline: auto`: auto margins on a grid item override the default
-     stretch and size it to content, which collapses a row of columns to almost
-     nothing. */
-  width: 100%;
-  max-width: var(--measure);
-  display: grid;
-  grid-auto-flow: column;
-
-  /* Capped, not `1fr`. With 1fr a two-plate run gave each plate half the
-     measure, about 660px, which is nearly the size of a full plate: the run
-     stopped reading as the quiet between the big pictures.
-     The cap scales with the count so a run always fills a similar band. Two
-     plates at the four-plate size read as two stragglers in an empty row. */
-  grid-auto-columns: clamp(120px, 22vw, 300px);
-  justify-content: center;
-  gap: clamp(8px, 1.6vw, 28px);
-  align-items: center;
-}
-
-.strip[data-n="2"] {
-  grid-auto-columns: clamp(150px, 32vw, 430px);
-}
-
-.strip[data-n="3"] {
-  grid-auto-columns: clamp(130px, 26vw, 350px);
-}
-
-.strip .plate {
-  width: 100%;
-  height: auto;
-}
-
-/* Centred, not flush left. The strip centres its capped columns, so its real
-   left edge moves with the plate count; a left-aligned caption sits against the
-   measure instead and lands a few dozen pixels off it. Centring removes the
-   mismatch rather than chasing it. */
-.frame--run .cap {
-  max-width: 52ch;
-  text-align: center;
-}
-
-/* PAIR: two plates at equal weight, no caption. The wear frame, and the peak. */
-.frame--pair {
-  display: grid;
-  align-content: center;
-  justify-items: center;
-}
-
-.duo {
-  width: 100%;
-  max-width: var(--measure);
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: clamp(16px, 3vw, 56px);
-  align-items: center;
-}
-
-.duo .plate {
-  width: 100%;
-  height: auto;
-}
-
-/* ── Caption ───────────────────────────────────────────────────────────────
-   One to three short sentences. Measured narrow, because a caption in a plate
-   book is narrow. Lines after the first drop to --ink-70 so a three-line
-   caption still has a clear entry point.                                      */
-.cap {
-  font-size: clamp(15px, 1.25vw, 18px);
+  gap: 14px;
+  font-size: clamp(15px, 1.15vw, 18px);
   line-height: 1.55;
   letter-spacing: -0.004em;
   text-wrap: pretty;
+  opacity: 0;
+  transition: opacity 240ms var(--ease-out);
 }
 
-.cap span {
-  display: block;
+.world[data-view="close"] .say {
+  opacity: 1;
+  transition-delay: 380ms;
 }
 
-.cap span + span {
-  margin-top: 0.5em;
+.say .tag {
+  color: var(--ink);
+}
+
+.say span + span:not(.tag) {
   color: var(--ink-70);
 }
 
+.say:focus-visible {
+  outline-offset: 8px;
+}
+
+/* ── The exits ─────────────────────────────────────────────────────────────
+   Where you can go from here. A zoomable interface loses people when the exits
+   are invisible, so each direction that has something in it gets a mark at that
+   edge; a direction with nothing in it has none, which is how the field says
+   you have reached its edge. Also the visible form of the arrow keys.         */
+.exits {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 240ms var(--ease-out);
+}
+
+.world[data-view="close"] .exits {
+  opacity: 1;
+  transition-delay: 440ms;
+}
+
+.exit {
+  position: absolute;
+  pointer-events: auto;
+  appearance: none;
+  background: none;
+  border: 0;
+  /* 44px of target around a 1px mark. */
+  padding: 22px;
+  cursor: pointer;
+}
+
+.exit i {
+  display: block;
+  width: 26px;
+  height: 1px;
+  background: var(--ink-40);
+  transition: background-color 200ms var(--ease-out), transform 200ms var(--ease-out);
+}
+
+.exit--up i,
+.exit--down i {
+  width: 1px;
+  height: 26px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .exit:hover i {
+    background: var(--ink);
+    transform: scale(1.25);
+  }
+}
+
+.exit:focus-visible i {
+  background: var(--ink);
+}
+
+.exit--left {
+  left: 0;
+  top: 50%;
+  translate: 0 -50%;
+}
+
+.exit--right {
+  right: 0;
+  top: 50%;
+  translate: 0 -50%;
+}
+
+.exit--up {
+  top: 0;
+  left: 50%;
+  translate: -50% 0;
+}
+
+.exit--down {
+  bottom: 0;
+  left: 50%;
+  translate: -50% 0;
+}
+
 /* ── Header ────────────────────────────────────────────────────────────────
-   The literal facts, fixed, so a visitor who leaves in five seconds still
-   leaves knowing who this is.                                                 */
+   The literal facts, so a visitor who leaves in five seconds still leaves
+   knowing who this is.                                                        */
 .head {
   position: fixed;
   top: var(--pad);
@@ -285,10 +354,6 @@ body {
   align-items: baseline;
   gap: 24px;
   pointer-events: none;
-}
-
-.head a {
-  pointer-events: auto;
 }
 
 .name {
@@ -306,97 +371,76 @@ body {
   white-space: nowrap;
 }
 
-/* ── Rail ──────────────────────────────────────────────────────────────────
-   Twelve ticks, one per frame. Real anchors, so navigation works with no JS.
-   The only progress affordance on the site: there is no scroll cue, and no
-   frame number is ever drawn (a number here would be the retired item number
-   returning in disguise).                                                     */
-.rail {
+/* ── The bottom bar ────────────────────────────────────────────────────────
+   Contact standing back, Back standing close. One element, two states, so the
+   bottom edge never shifts.                                                   */
+.bar {
   position: fixed;
+  left: var(--pad);
   right: var(--pad);
-  top: 50%;
-  transform: translateY(-50%);
+  bottom: var(--pad);
   z-index: 3;
-  display: flex;
-  flex-direction: column;
-  /* 15px gap plus the anchors' 4px padding gives a 24px pitch, which is the
-     WCAG 2.2 target-size floor. At 9px the pitch was 18px and failed both the
-     size rule and its spacing exemption. */
-  gap: 15px;
-}
-
-.rail a {
-  display: block;
-  padding: 4px 0; /* a 1px line is not a touch target */
-}
-
-/* Ticks are drawn at full length and scaled down, rather than transitioning
-   `width`: width is a layout property and animating it thrashes layout, even
-   for a hairline. transform-origin pins the right edge so the rail keeps one
-   clean margin and the tick grows leftward into the page. */
-.rail i {
-  display: block;
-  width: 26px;
-  height: 1px;
-  background: var(--ink-45);
-  transform: scaleX(0.46);
-  transform-origin: right center;
-  transition: transform 220ms var(--ease-out), background-color 220ms var(--ease-out);
-}
-
-/* State is carried by length AND strength, never by colour alone. */
-.rail a[aria-current="true"] i {
-  transform: scaleX(1);
-  background: var(--ink);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .rail a:hover i {
-    transform: scaleX(0.77);
-    background: var(--ink);
-  }
-}
-
-/* ── Close ─────────────────────────────────────────────────────────────────
-   Contact on the bare field. Nothing follows it.                              */
-.close {
-  min-height: 62dvh;
   display: grid;
-  align-content: center;
-  justify-items: center;
-  gap: 26px;
-  padding: calc(var(--pad) * 2) var(--pad) calc(var(--pad) * 3);
 }
 
-.close ul {
+.bar > * {
+  grid-area: 1 / 1;
+  justify-self: start;
+  transition: opacity 200ms linear;
+}
+
+.world[data-view="far"] .back,
+.world[data-view="close"] .links {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.world[data-view="far"] .links,
+.world[data-view="close"] .back {
+  opacity: 1;
+}
+
+.links ul {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: clamp(18px, 3vw, 44px);
+  gap: clamp(14px, 2.2vw, 32px);
   list-style: none;
 }
 
-.close a {
-  color: inherit;
-  font-size: 14px;
+.links a,
+.back,
+.fallback a,
+.fallback button {
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink-70);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
   text-decoration-line: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
-  text-decoration-color: var(--ink-45);
-  transition: text-decoration-color 180ms var(--ease-out);
+  text-decoration-color: var(--ink-18);
+  transition: color 180ms var(--ease-out), text-decoration-color 180ms var(--ease-out);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .close a:hover {
+  .links a:hover,
+  .back:hover,
+  .fallback a:hover,
+  .fallback button:hover {
+    color: var(--ink);
     text-decoration-color: var(--ink);
   }
 }
 
 /* ── Fallback surfaces ─────────────────────────────────────────────────────
-   error.tsx and not-found.tsx. Same two colours, same family, no drawing: the
-   world holds even when the data does not arrive.                             */
+   error.tsx and not-found.tsx. The world holds even when the data does not
+   arrive.                                                                     */
 .fallback {
-  min-height: 100dvh;
+  position: fixed;
+  inset: 0;
   display: grid;
   align-content: center;
   justify-items: center;
@@ -409,167 +453,93 @@ body {
   font-size: clamp(15px, 1.25vw, 18px);
 }
 
-.fallback a,
-.fallback button {
-  font: inherit;
-  font-size: 14px;
-  color: var(--ink-70);
-  background: none;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-  text-decoration-line: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
-  text-decoration-color: var(--ink-45);
-  transition: color 180ms var(--ease-out), text-decoration-color 180ms var(--ease-out);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .fallback a:hover,
-  .fallback button:hover {
-    color: var(--ink);
-    text-decoration-color: var(--ink);
-  }
-}
-
 /* ── Motion ────────────────────────────────────────────────────────────────
-   Two motions and no others. Both CSS, neither on the main thread.
-
-   Browsers without scroll-driven animation support, and anyone who asked for
-   reduced motion, get the settled state: a plain vertical sequence, fully
-   legible. No information exists only in an animated state.                   */
+   Two motions and no others: the field develops once on load, and the camera
+   flies. The camera lives in field.tsx, where it has to be interruptible.     */
 @media (prefers-reduced-motion: no-preference) {
-  /* NO `scroll-behavior: smooth`. It was here and was removed: it is a third
-     motion, which this world does not have, and it broke the rail. Smooth
-     scrolling 8500px from the first tick to the last means the visitor rides
-     through every intervening frame instead of arriving, and the control sits
-     dead for seconds before anything moves. A navigation control that does not
-     move on click is not navigation. */
-
-  /* 1. The plate develops. A cyanotype's native behaviour is exposure: the
-        image appears under light. First frame only, once, on load. */
-  .develop {
-    animation: develop 700ms var(--ease-out) both;
+  /* A contact sheet coming up in the tray. clip-path only, never opacity: a
+     mark's opacity is its WEIGHT on the field, and an animation filling
+     forwards would win over that forever. */
+  .mark {
+    animation: develop 620ms var(--ease-out) both;
+    animation-delay: calc(var(--i) * 34ms);
   }
 
   @keyframes develop {
     from {
       clip-path: inset(0 0 100% 0);
-      opacity: 0;
     }
     to {
       clip-path: inset(0 0 0 0);
-      opacity: 1;
-    }
-  }
-
-  @supports (animation-timeline: view()) {
-    /* 2. The frame advances. The blur is load-bearing rather than decorative:
-          crossfading two line drawings without it reads as two objects
-          overlapping instead of one becoming the next. */
-    .advance {
-      animation: advance linear both;
-      animation-timeline: view();
-      animation-range: entry 8% cover 34%;
-    }
-
-    @keyframes advance {
-      from {
-        opacity: 0;
-        filter: blur(2px);
-        transform: scale(1.02);
-      }
-      to {
-        opacity: 1;
-        filter: blur(0);
-        transform: scale(1);
-      }
     }
   }
 }
 
-/* ── Mobile ────────────────────────────────────────────────────────────────
-   The margin-set caption has no margin to sit in, so the plate centres and the
-   caption goes BENEATH it. The grid rows are explicit on BOTH breakpoints, so
-   the layout never depends on source order: the DOM is plate then caption, the
-   natural order for figure/figcaption, and desktop lifts the caption into the
-   left margin by grid placement alone.                                        */
-@media (max-width: 860px) {
-  .frame--plate {
-    grid-template-columns: minmax(0, 1fr);
-    align-items: center;
+/* WCAG 2.3.3 names zooming specifically, and a zoom covering a large part of
+   the screen is the motion most likely to cause vestibular symptoms. So reduced
+   motion gets no zoom at all: the camera jumps and the states cross-fade.
+   Everything stays reachable and legible, and no information exists only in an
+   animated state. */
+@media (prefers-reduced-motion: reduce) {
+  .say,
+  .exits,
+  .mark {
+    transition-duration: 150ms;
+    transition-delay: 0s;
+  }
+}
+
+/* ── Tall ──────────────────────────────────────────────────────────────────
+   A separately authored arrangement, not the wide one reflowed. Keyed on the
+   canvas's own proportion rather than on a pixel width, because the composition
+   is a shape: a tall narrow window wants the tall arrangement whatever its
+   width. The query must match TALL_QUERY in layout.ts exactly.                */
+@media (max-aspect-ratio: 19/20) {
+  .canvas {
+    width: min(100vw, calc(100svh * 0.62));
+    aspect-ratio: 0.62;
+  }
+
+  .mark {
+    left: calc(var(--tx) * 1%);
+    top: calc(var(--ty) * 1%);
+    height: calc(var(--th) * 1%);
+  }
+
+  .tags .tag {
+    left: calc(var(--tx) * 1%);
+    top: calc((var(--ty) + var(--th) / 2) * 1%);
+  }
+
+  /* The words go underneath rather than beside. */
+  .says {
+    left: var(--pad);
+    right: var(--pad);
+    top: auto;
+    bottom: calc(var(--pad) * 2 + 22px);
+    translate: 0;
+    width: auto;
+  }
+
+  .say {
     justify-items: center;
-    row-gap: 30px;
-  }
-
-  .frame--plate .plate {
-    grid-column: 1;
-    grid-row: 1;
-    height: auto;
-    width: min(84vw, 460px);
-    margin-right: 0;
-  }
-
-  /* The caption takes the plate's own box rather than the frame's, so their
-     left edges match. Pinning it to the padding instead left the caption flush
-     left against a centred plate: an 8px mismatch at 390px, but 123px at 768px,
-     which is iPad portrait and every half-width laptop window. */
-  .frame--plate .cap {
-    grid-column: 1;
-    grid-row: 2;
-    /* Same width expression as the plate, and centred like it. `justify-self`
-       must be restated: the desktop rule sets `end`, which against a centred
-       plate leaves the caption flush right and the two edges unrelated. */
-    justify-self: center;
-    width: min(84vw, 460px);
-    max-width: none;
-    text-align: left;
-    padding-bottom: 0;
-  }
-
-  /* Four across would be four thumbnails and the line would disappear. */
-  .strip {
-    grid-auto-flow: row;
-    grid-template-columns: 1fr 1fr;
-    grid-auto-columns: auto;
-    justify-content: stretch;
-    gap: 18px;
-  }
-
-  /* A three-plate run folds to 2 + 1, which reads as a layout accident. That
-     matters most on the one frame it applies to: the three childhood plates,
-     whose whole job is to establish the same rule three times. Centring the
-     third at the same size keeps it a repetition rather than an orphan. */
-  .strip[data-n="3"] > :last-child {
-    grid-column: 1 / -1;
-    justify-self: center;
-    width: calc(50% - 9px);
-  }
-
-  .frame--run {
-    min-height: auto;
-    padding-block: 12vh;
-  }
-
-  .frame--pair {
-    padding-block: 10vh;
-  }
-
-  /* No margin to enlarge into, so a silent plate matches a captioned one. */
-  .frame--solo .plate {
-    height: auto;
+    text-align: center;
+    max-height: 30svh;
   }
 
   .head {
     flex-direction: column;
     align-items: flex-start;
-    gap: 2px;
+    gap: 1px;
   }
 
-  /* Twelve ticks at 9px gaps do not survive a 390px viewport next to content,
-     and the anchors are duplicated by ordinary scrolling. */
-  .rail {
-    display: none;
+  .bar,
+  .bar > * {
+    justify-items: center;
+    justify-self: center;
+  }
+
+  .links ul {
+    justify-content: center;
   }
 }

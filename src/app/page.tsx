@@ -1,34 +1,42 @@
-import { getSettings, getFrames } from "@/lib/content";
-import { Frame } from "@/components/frame";
-import { Header, Close } from "@/components/chrome";
-import { Rail } from "@/components/rail";
+import { getSettings, getAspects } from "@/lib/content";
+import { Field } from "@/components/field";
+import { Header, Contact } from "@/components/chrome";
 
 export const revalidate = 900;
 
 /**
- * The sequence.
+ * THE FIELD.
  *
- * Order is the argument, and the reasoning for this particular order lives with
- * the data that defines it, in prisma/sequence.mjs. In short: the guitar opens
- * because the header has already said "engineer", so the first image is free to
- * break the expectation rather than confirm it; the wear pair in the middle is
- * the peak and is silent; the three childhood plates establish a rule and the
- * last one breaks it. The page never states the conclusion.
+ * THESIS: range read at a glance, not accumulated by scrolling. One screen holds
+ * eighteen drawings of one person at once, so you cannot look at any of them
+ * without seeing the others. Refuses the portfolio scroll, and the section
+ * stack that comes with it.
+ *
+ * OWN-WORLD: drenched Prussian blue ground, one warm rag-paper ink, no third
+ * colour and no accent. Archivo alone, caption sizes only, no display type. The
+ * twenty-three traced drawings are the entire component library; there are no
+ * cards, icons, borders or shadows anywhere.
+ *
+ * STORY: a visitor sees one person doing many things, picks whichever one they
+ * recognise, reads two sentences, finds the boy who was doing it first, and
+ * moves sideways to the next without ever leaving the page.
+ *
+ * FIRST VIEWPORT: the whole site. Guitar largest at lower left, forehand upper
+ * right, the waterfall alone at top left, camera bottom centre, laptop bottom
+ * right; thirteen smaller drawings clustered around them at 55% ink. Name top
+ * left, role top right, contact along the bottom.
+ *
+ * FORM: brief-pinned by Renato (one page, montage, zoom in, zoom out, liquid
+ * morph), so no concept roll was run. Cyanotype and Muybridge carry over from
+ * the retired Plate Sequence world; what is retired is the sequence itself.
  */
 export default async function Page() {
-  const [settings, frames] = await Promise.all([getSettings(), getFrames()]);
+  const [settings, aspects] = await Promise.all([getSettings(), getAspects()]);
 
   return (
     <>
       <Header s={settings} />
-      {frames.length > 1 ? <Rail count={frames.length} /> : null}
-
-      <main>
-        {frames.map((frame, i) => (
-          <Frame key={frame.id} frame={frame} index={i} isFirst={i === 0} />
-        ))}
-        <Close s={settings} />
-      </main>
+      <Field aspects={aspects} contact={<Contact s={settings} />} />
 
       <script
         type="application/ld+json"
