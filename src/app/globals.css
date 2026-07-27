@@ -137,9 +137,9 @@ body {
    Space all work, and hover is decoration only, because a phone has no hover.  */
 .mark {
   position: absolute;
-  left: calc(var(--wx) * 1%);
-  top: calc(var(--wy) * 1%);
-  height: calc(var(--wh) * 1%);
+  left: calc(var(--x) * 1%);
+  top: calc(var(--y) * 1%);
+  height: calc(var(--h) * 1%);
   aspect-ratio: var(--r);
   translate: -50% -50%;
 
@@ -214,9 +214,9 @@ body {
   outline: none;
   box-shadow: none;
   position: absolute;
-  left: calc(var(--wx) * 1%);
-  top: calc(var(--wy) * 1%);
-  height: calc(var(--wr) * 2%);
+  left: calc(var(--x) * 1%);
+  top: calc(var(--y) * 1%);
+  height: calc(var(--ring) * 2%);
   aspect-ratio: 1;
   translate: -50% -50%;
   pointer-events: none;
@@ -237,13 +237,14 @@ body {
   opacity: 1;
 }
 
-.orbiter {
-  /* Restated in full: the base .mark rule positions by the hero variables, which
-     an orbiter does not have. Leaving them to resolve against nothing gave an
-     invalid height and a bare box. */
+.ring > .orbiter {
+  /* `.ring >` is not decoration. Custom properties INHERIT, so an orbiter picks
+     up its ring's placement variables, and a bare `.mark` rule will then put it
+     at its HERO'S coordinates: an entire aspect collapsing onto one point. Two
+     classes beat one, so this wins wherever it sits in the file. */
   left: 50%;
   top: 0;
-  height: calc(var(--ohw) * 1%);
+  height: calc(var(--oh) * 1%);
   translate: -50% -50%;
   pointer-events: auto;
   /* An explicit NEGATIVE keyframe, not `reverse`. The parent runs +360 and this
@@ -347,15 +348,17 @@ body {
 
 .tags .tag {
   position: absolute;
-  left: calc(var(--wx) * 1%);
-  top: calc((var(--wy) + var(--wh) / 2) * 1%);
+  left: calc(var(--x) * 1%);
+  top: calc((var(--y) + var(--h) / 2) * 1%);
   translate: -50% 10px;
-  /* Never inside the bar's band. A label that lands on the contact links is the
-     one collision the composition cannot solve, because the bar is fixed to the
-     viewport and the label is placed in canvas percent. */
-  max-height: calc(100svh - var(--pad) * 2 - 34px);
+  white-space: nowrap;
   opacity: 0;
   transition: opacity 260ms var(--ease-out), color 260ms var(--ease-out);
+}
+
+.tags .tag[data-side="above"] {
+  top: calc((var(--y) - var(--h) / 2) * 1%);
+  translate: -50% -22px;
 }
 
 .tags .tag[data-lit] {
@@ -675,21 +678,6 @@ body {
   .canvas {
     width: min(100vw, calc(100svh * 0.62));
     aspect-ratio: 0.62;
-  }
-
-  .mark {
-    left: calc(var(--tx) * 1%);
-    top: calc(var(--ty) * 1%);
-    height: calc(var(--th) * 1%);
-  }
-
-  .orbiter {
-    height: calc(var(--oht) * 1%);
-  }
-
-  .tags .tag {
-    left: calc(var(--tx) * 1%);
-    top: calc((var(--ty) + var(--th) / 2) * 1%);
   }
 
   /* The words go underneath rather than beside. */

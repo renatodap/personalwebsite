@@ -182,12 +182,30 @@ export function Melt({
 
       const at = (i: number, t: number, out: [number, number]) => {
         // Renormalised so every particle still completes exactly at t = 1.
-        const local = Math.min(1, Math.max(0, (t - lead[i] * 0.42) / 0.58));
+        // Overlapping action. Departure is staggered along the direction of
+        // travel AND across it, so the far edge of a lane leaves after its near
+        // edge and the sheet of ink tears rather than sliding off whole.
+        const off = lead[i] * 0.34 + Math.abs(phase[i] - 0.5) * 0.16;
+        const local = Math.min(1, Math.max(0, (t - off) / (1 - off)));
 
-        // Leaves fast, arrives slow, and eases IN at the very start too, so ink
-        // peels away rather than jumping. A pure ease-out starts at maximum
-        // speed, which is exactly the "constructing out of nowhere" tell.
-        const e = local < 0.18 ? 2.6 * local * local : 1 - Math.pow(1 - local, 3.4) * 0.916;
+        // Anticipation, drag, then follow-through: the three things that make
+        // motion read as physical rather than as interpolation.
+        //
+        //   0.00-0.16  gathers, easing IN. Ink peels away instead of leaping,
+        //              and a pure ease-out starts at maximum speed, which is
+        //              exactly the "appears from nowhere" tell.
+        //   0.16-0.88  travels, easing out, so it carries and then slows.
+        //   0.88-1.00  OVERSHOOTS its mark and settles back. Liquid does not
+        //              stop where it was aimed; it arrives, passes, and comes
+        //              back, and that last two percent is most of the weight.
+        let e: number;
+        if (local < 0.16) e = 2.4 * local * local;
+        else {
+          const u = (local - 0.16) / 0.84;
+          e = 0.0614 + (1 - 0.0614) * (1 - Math.pow(1 - u, 3.2));
+          // Follow-through, decaying to nothing exactly at the end.
+          e += Math.sin(u * Math.PI * 1.6) * 0.055 * Math.pow(1 - u, 1.6);
+        }
 
         const ia = oa[i] * 2;
         const ib = ob[i] * 2;
@@ -199,9 +217,9 @@ export function Melt({
         // One current: every particle bows the same way. The swirl is a full
         // turn of phase across the flight, so the stream rolls over itself.
         // Every particle bows the SAME way, by an amount fixed for its lane, so
-        // the cloud travels as a set of parallel streams rather than each mark
-        // wandering on its own. The bow swells and resolves, so the streams part
-        // from the figure and close back onto the next one.
+        // the cloud travels as parallel streams rather than each mark wandering
+        // on its own. The bow swells and resolves, so the streams part from the
+        // figure and close back onto the next one.
         const swell = Math.sin(Math.PI * e);
         const bow = swell * LANE * (phase[i] - 0.5) * 2;
 

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import {
   ANCHOR,
   ASPECT_OF,
-  CLOSE,
+  zoomFor,
   HERO,
   ORBIT,
   ORBIT_SECONDS,
@@ -95,7 +95,7 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
   }, []);
 
   const target = useMemo(
-    () => (at ? cameraFor(spotOf(at, set), ANCHOR[set], CLOSE[set]) : REST),
+    () => (at ? cameraFor(spotOf(at, set), ANCHOR[set], zoomFor(at, set)) : REST),
     [at, set],
   );
 
@@ -279,12 +279,15 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
               style={
                 {
                   "--r": RATIO[h.drawing],
-                  "--wx": h.wide.x,
-                  "--wy": h.wide.y,
-                  "--wh": h.wide.h,
-                  "--tx": h.tall.x,
-                  "--ty": h.tall.y,
-                  "--th": h.tall.h,
+                  // RESOLVED here, not in a media query. Emitting both sets and
+                  // picking one in CSS meant two rules in two blocks had to
+                  // agree, and they did not: the ring kept its wide radius on a
+                  // tall screen, and because custom properties inherit, the tall
+                  // `.mark` rule then placed orbiters at their hero's
+                  // coordinates. One variable cannot disagree with itself.
+                  "--x": h[set].x,
+                  "--y": h[set].y,
+                  "--h": h[set].h,
                   "--i": i,
                   maskImage: `url(/drawings/detail-${h.drawing}.svg)`,
                   WebkitMaskImage: `url(/drawings/detail-${h.drawing}.svg)`,
@@ -316,12 +319,9 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
                 data-weight={w}
                 style={
                   {
-                    "--wx": h.wide.x,
-                    "--wy": h.wide.y,
-                    "--wr": ringOf(h.wide, h.drawing, "wide"),
-                    "--tx": h.tall.x,
-                    "--ty": h.tall.y,
-                    "--tr": ringOf(h.tall, h.drawing, "tall"),
+                    "--x": h[set].x,
+                    "--y": h[set].y,
+                    "--ring": ringOf(h[set], h.drawing, set),
                     "--turn": o.turn,
                     "--spin": `${ORBIT_SECONDS}s`,
                   } as React.CSSProperties
@@ -341,9 +341,11 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
                       // percentage height resolves against the parent, and the
                       // parent here is the square that spins. Passing canvas
                       // percent made every orbiter about a third of its size.
-                      "--ohw": (o.h / (2 * ringOf(h.wide, h.drawing, "wide"))) * 100,
-                      "--oht":
-                        (orbiterH(drawing, "tall") / (2 * ringOf(h.tall, h.drawing, "tall"))) * 100,
+                      // As a fraction of the RING box, because a percentage
+                      // height resolves against the parent and the parent is the
+                      // square that spins.
+                      "--oh":
+                        (orbiterH(drawing, set) / (2 * ringOf(h[set], h.drawing, set))) * 100,
                       "--turn": o.turn,
                       "--spin": `${ORBIT_SECONDS}s`,
                       maskImage: `url(/drawings/detail-${drawing}.svg)`,
@@ -382,14 +384,14 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
                 key={a.id}
                 className="tag"
                 data-lit={!at && (!hover || hover === a.id) ? "" : undefined}
+                // Below by default, above when the hero sits low enough that a
+                // label under it would reach the contact bar.
+                data-side={h[set].y + h[set].h / 2 > 66 ? "above" : "below"}
                 style={
                   {
-                    "--wx": h.wide.x,
-                    "--wy": h.wide.y,
-                    "--wh": h.wide.h,
-                    "--tx": h.tall.x,
-                    "--ty": h.tall.y,
-                    "--th": h.tall.h,
+                    "--x": h[set].x,
+                    "--y": h[set].y,
+                    "--h": h[set].h,
                   } as React.CSSProperties
                 }
               >

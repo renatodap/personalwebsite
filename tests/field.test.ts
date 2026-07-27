@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import { ASPECTS, SETTINGS } from "../src/content/site.mjs";
 import { checkCopy } from "../prisma/copy-rules.mjs";
-import { HERO, ORBIT, ASPECT_OF, ANCHOR, CANVAS, CLOSE, ORBIT_X, ringOf, orbiterH, boxOf, cameraFor, spotOf, ORDER, step } from "../src/lib/layout";
+import { HERO, ORBIT, ASPECT_OF, ANCHOR, CANVAS, zoomFor, ORBIT_X, ringOf, orbiterH, boxOf, cameraFor, spotOf, ORDER, step } from "../src/lib/layout";
 import { RATIO } from "../src/lib/ratios";
 import { readRatios, render } from "../scripts/ratios.mjs";
 
@@ -103,8 +103,7 @@ describe("composition", () => {
       // half-size has to sit inside what the camera can see, or one swings out
       // of frame half a minute after you arrive.
       for (const [id, h] of Object.entries(HERO)) {
-        const k = Math.min(4.6, CLOSE[set.key] / h[set.key].h);
-        const halfView = 50 / k;
+        const halfView = 50 / zoomFor(h.drawing, set.key);
         const r = ringOf(h[set.key], h.drawing, set.key);
 
         for (const d of Object.keys(ORBIT).filter((x) => ASPECT_OF[x] === id)) {
@@ -187,9 +186,8 @@ describe("camera", () => {
       for (const m of onField) {
         const hero = spotOf(m.drawing, set);
         const anchor = ANCHOR[set];
-        const grow = CLOSE[set];
 
-        const transform = cameraFor(hero, anchor, grow);
+        const transform = cameraFor(hero, anchor, zoomFor(m.drawing, set));
         const [, tx, ty, k] = transform
           .match(/translate\((-?[\d.]+)%, (-?[\d.]+)%\) scale\(([\d.]+)\)/)!
           .map(Number) as unknown as [string, number, number, number];
@@ -201,7 +199,7 @@ describe("camera", () => {
         // A camera that zoomed OUT to reach something would read as a mistake,
         // and the cap keeps a small drawing from flying the field out of frame.
         expect(k, `${m.drawing} ${set} zoom`).toBeGreaterThan(1);
-        expect(k, `${m.drawing} ${set} cap`).toBeLessThanOrEqual(4.6);
+        expect(k, `${m.drawing} ${set} cap`).toBeLessThanOrEqual(3.4);
       }
     }
   });

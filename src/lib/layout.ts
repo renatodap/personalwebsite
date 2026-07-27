@@ -33,13 +33,23 @@ export const CANVAS = { wide: 1.6, tall: 0.62 };
  *  would need 1.6x and throw every ring off the sides, while squeezing x
  *  instead pulls the ring inside the hero's own width, so the orbit is simply
  *  taller than it is wide there. Both read as an orbit seen at an angle. */
-export const ORBIT_X = { wide: 0.62, tall: 1.45 };
+/**
+ * Sideways reach of the ring per unit of vertical reach.
+ *
+ * DERIVED, not chosen. The ring is a square box that spins, so the orbiter rides
+ * a circle in PIXELS whatever else is true; converting that circle into canvas
+ * percent divides by the canvas ratio, because a percent of width is a different
+ * number of pixels from a percent of height. Hand-picking these (0.62 and 1.45)
+ * meant the model described an ellipse the CSS was never drawing, and every
+ * clearance computed from it was wrong on the tall canvas.
+ */
+export const ORBIT_X = { wide: 1 / CANVAS.wide, tall: 1 / CANVAS.tall };
 
 /** Orbiters run smaller on the tall canvas. Its heroes are smaller too, and a
  *  ring has to clear both boxes, so carrying the wide sizes across left the
  *  narrow arrangement permanently over-constrained: every fix to one collision
  *  opened another. Scaling the ring's contents is the structural fix. */
-export const ORBITER_SCALE = { wide: 1, tall: 0.7 };
+export const ORBITER_SCALE = { wide: 1, tall: 0.55 };
 export const TALL_QUERY = "(max-aspect-ratio: 19/20)";
 
 /** One full turn: fifteen minutes. Slow enough that nothing appears to move at
@@ -60,31 +70,34 @@ export const ORBIT_SECONDS = 900;
  *  Renato, 2026-07-27: "make sure the ones orbiting are closer in". */
 export const RING_OF_HERO = 0.5;
 
+/** Clear ground between a hero and its orbiters, in canvas percent. */
+const GAP = 3.2;
+
 export const HERO: Record<string, { drawing: string; wide: Spot; tall: Spot }> = {
   brazil: {
     drawing: "falls",
-    wide: { x: 20, y: 30, h: 28 },
-    tall: { x: 42, y: 16, h: 15 },
+    wide: { x: 19, y: 27, h: 21 },
+    tall: { x: 34, y: 15, h: 12 },
   },
   sport: {
     drawing: "tennis",
-    wide: { x: 48, y: 25, h: 33 },
-    tall: { x: 58, y: 33, h: 14 },
+    wide: { x: 50, y: 24, h: 24 },
+    tall: { x: 64, y: 33, h: 13 },
   },
   music: {
     drawing: "guitar",
-    wide: { x: 28, y: 74, h: 38 },
-    tall: { x: 34, y: 54, h: 18 },
+    wide: { x: 24, y: 72, h: 25 },
+    tall: { x: 32, y: 55, h: 13 },
   },
   camera: {
     drawing: "camera",
-    wide: { x: 68, y: 75, h: 32 },
-    tall: { x: 62, y: 71, h: 17 },
+    wide: { x: 55, y: 74, h: 22 },
+    tall: { x: 64, y: 72, h: 12 },
   },
   software: {
     drawing: "working",
-    wide: { x: 82, y: 26, h: 32 },
-    tall: { x: 38, y: 90, h: 17 },
+    wide: { x: 81, y: 26, h: 22 },
+    tall: { x: 34, y: 88, h: 12 },
   },
 };
 
@@ -132,9 +145,12 @@ for (const [aspect, ring] of Object.entries(RING)) {
   });
 }
 
-/** Half-extent of a box in canvas-height units, whichever way it is bigger. */
-function reach(h: number, drawing: string): number {
-  return (h * Math.max(1, RATIO[drawing])) / 2;
+/** A box's half-width, in canvas percent OF WIDTH. Height is `h` by definition,
+ *  so this is the only one that needs deriving, and it is the one that was
+ *  missing: it depends on the canvas ratio, so it is different in the two
+ *  arrangements even for the same drawing. */
+function halfW(h: number, drawing: string, set: "wide" | "tall"): number {
+  return (h * RATIO[drawing]) / CANVAS[set] / 2;
 }
 
 /** An orbiter's height in a given arrangement. */
@@ -151,14 +167,20 @@ export function orbiterH(drawing: string, set: "wide" | "tall"): number {
  * 1.08:1 pushed the music ring out further than the drawings around it.
  */
 export function ringOf(hero: { h: number }, drawing: string, set: "wide" | "tall" = "wide"): number {
-  const aspect = ASPECT_OF[drawing];
-  const widest = Math.max(
-    ...Object.keys(ORBIT)
-      .filter((d) => ASPECT_OF[d] === aspect)
-      .map((d) => reach(orbiterH(d, set), d)),
-    0,
-  );
-  return Math.max(hero.h * RING_OF_HERO, reach(hero.h, drawing) + widest + 5.0);
+  const own = Object.keys(ORBIT).filter((d) => ASPECT_OF[d] === ASPECT_OF[drawing]);
+  const tallest = Math.max(...own.map((d) => orbiterH(d, set)), 0);
+  const widest = Math.max(...own.map((d) => halfW(orbiterH(d, set), d, set)), 0);
+
+  // Checking the two axes is not enough, and this is the bug that survived
+  // three passes: an orbiter clears the hero directly above it and directly
+  // beside it and still cuts the CORNER on the diagonal between them. The
+  // condition that actually holds at every angle is that the hero's box, grown
+  // by the orbiter's half-size and the gap, fits entirely INSIDE the orbit
+  // ellipse. Putting the corner on the ellipse and solving for the radius:
+  const cornerX = (halfW(hero.h, drawing, set) + widest + GAP) / ORBIT_X[set];
+  const cornerY = hero.h / 2 + tallest / 2 + GAP;
+
+  return Math.max(hero.h * RING_OF_HERO, Math.hypot(cornerX, cornerY));
 }
 
 export const HEROES = Object.values(HERO).map((h) => h.drawing);
@@ -193,7 +215,38 @@ export function spotOf(drawing: string, set: "wide" | "tall"): Spot {
 /* wide 42 / tall 25. The tall number is smaller because x is a percentage of a
    NARROWER box there, so the same ring spans far more of the width: at 32 the
    satellites left the canvas entirely. */
-export const CLOSE = { wide: 40, tall: 22 };
+/* Zoomed out further than feels natural to write, and the reason is `falls`:
+   at 1.32:1 it is the widest hero, so its ring is the largest, and the camera
+   has to stand back far enough to keep that whole ring in frame. The number is
+   set by the worst case, not the typical one. */
+/**
+ * Zoom is derived from the RING, not from the hero, and that inversion is the
+ * fix. Sizing it from the hero assumed every aspect needed the same
+ * magnification, but the thing that has to fit on screen is the whole orbit,
+ * and orbits differ: `falls` is 1.32:1, so its orbiters must swing wide to clear
+ * it and its ring is half again the size of `software`'s. Framing the hero
+ * therefore framed some rings and cut others off.
+ *
+ * Now each aspect zooms to whatever shows its own ring whole. The hero's size on
+ * screen varies a little between aspects as a result, which is the correct trade
+ * and is barely visible.
+ */
+const FRAME = 44;
+const ZOOM = { min: 1.25, max: 3.4 };
+
+export function zoomFor(drawing: string, set: "wide" | "tall"): number {
+  const hero = HERO[ASPECT_OF[drawing]];
+  const own = Object.keys(ORBIT).filter((d) => ASPECT_OF[d] === ASPECT_OF[drawing]);
+  const ring = ringOf(hero[set], hero.drawing, set);
+
+  // The furthest any part of this aspect reaches from the hero's centre, on
+  // whichever axis reaches further.
+  const outY = ring + Math.max(...own.map((d) => orbiterH(d, set)), 0) / 2;
+  const outX =
+    ring * ORBIT_X[set] + Math.max(...own.map((d) => halfW(orbiterH(d, set), d, set)), 0);
+
+  return Math.min(ZOOM.max, Math.max(ZOOM.min, FRAME / Math.max(outY, outX)));
+}
 /* Off centre on a wide screen so the sentences own the left third and never sit
    under a satellite; centred on a tall one, with the words below the ring. */
 export const ANCHOR = { wide: { x: 63, y: 50 }, tall: { x: 50, y: 38 } };
@@ -205,8 +258,7 @@ export const ANCHOR = { wide: { x: 63, y: 50 }, tall: { x: 50, y: 38 } };
  * Percentages resolve against the stage's own box, which IS the canvas, so this
  * is correct at every viewport with no measurement and no layout read.
  */
-export function cameraFor(spot: Spot, anchor: { x: number; y: number }, close: number): string {
-  const k = Math.min(4.6, close / spot.h);
+export function cameraFor(spot: Spot, anchor: { x: number; y: number }, k: number): string {
   return `translate(${(anchor.x - k * spot.x).toFixed(3)}%, ${(anchor.y - k * spot.y).toFixed(3)}%) scale(${k.toFixed(4)})`;
 }
 
