@@ -160,21 +160,19 @@ describe("composition", () => {
     });
   }
 
-  it("turns through every aspect and comes back, both ways", () => {
-    // Left and right always move, so the only thing to prove is that the ring
-    // is a ring: five steps returns you to where you started, from anywhere, in
-    // either direction, and no aspect is skipped on the way.
-    for (const by of [1, -1] as const) {
-      for (const start of ORDER) {
-        const seen = new Set<string>();
-        let here = start;
-        for (let i = 0; i < ORDER.length; i++) {
-          seen.add(here);
-          here = step(here, by);
-        }
-        expect(here, `${start} by ${by}`).toBe(start);
-        expect(seen.size, `${start} by ${by} covers all`).toBe(ORDER.length);
+  it("turns through every aspect and comes back", () => {
+    // One direction, and it wraps, so the only thing to prove is that the ring
+    // is a ring: five steps returns you to where you started, from anywhere,
+    // and nobody is skipped on the way.
+    for (const start of ORDER) {
+      const seen = new Set<string>();
+      let here = start;
+      for (let i = 0; i < ORDER.length; i++) {
+        seen.add(here);
+        here = step(here);
       }
+      expect(here, start).toBe(start);
+      expect(seen.size, `${start} covers all`).toBe(ORDER.length);
     }
   });
 

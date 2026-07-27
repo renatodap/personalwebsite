@@ -74,16 +74,6 @@ export const ASPECTS = [
     ],
   },
   {
-    id: "camera",
-    title: "Camera",
-    lines: ["I shoot and edit my own video."],
-    marks: [
-      { drawing: "camera", alt: "Shooting with a camera.", hero: true },
-      { drawing: "filmset", alt: "Behind a camera on a tripod, beside a light." },
-      { drawing: "first-camera", alt: "As a boy, holding a camcorder to his eye." },
-    ],
-  },
-  {
     id: "sport",
     title: "Sport",
     lines: [
@@ -100,6 +90,16 @@ export const ASPECTS = [
       { drawing: "deadlift", alt: "Standing with a weight." },
       { drawing: "broken-racket", alt: "Laughing, holding up a tennis racket snapped in two." },
       { drawing: "first-racket", alt: "As a boy, holding a tennis racket on a court." },
+    ],
+  },
+  {
+    id: "camera",
+    title: "Camera",
+    lines: ["I shoot and edit my own video."],
+    marks: [
+      { drawing: "camera", alt: "Shooting with a camera.", hero: true },
+      { drawing: "filmset", alt: "Behind a camera on a tripod, beside a light." },
+      { drawing: "first-camera", alt: "As a boy, holding a camcorder to his eye." },
     ],
   },
   {

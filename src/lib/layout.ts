@@ -236,10 +236,12 @@ export function boxOf(spot: Spot, drawing: string, canvasRatio: number) {
  * The order is the order of the aspects as seeded, so it is content, and it is
  * the same order every time.
  */
-export const ORDER = ["brazil", "music", "camera", "sport", "software"];
+export const ORDER = ["brazil", "music", "sport", "camera", "software"];
 
-export function step(aspectId: string, by: 1 | -1): string {
+/** Forward only, and it wraps: software goes to brazil. One direction is a
+ *  simpler promise than two, and a ring that only turns one way can never leave
+ *  anyone wondering which way they came from. */
+export function step(aspectId: string): string {
   const i = ORDER.indexOf(aspectId);
-  if (i < 0) return ORDER[0];
-  return ORDER[(i + by + ORDER.length) % ORDER.length];
+  return i < 0 ? ORDER[0] : ORDER[(i + 1) % ORDER.length];
 }

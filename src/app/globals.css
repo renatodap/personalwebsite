@@ -350,6 +350,10 @@ body {
   left: calc(var(--wx) * 1%);
   top: calc((var(--wy) + var(--wh) / 2) * 1%);
   translate: -50% 10px;
+  /* Never inside the bar's band. A label that lands on the contact links is the
+     one collision the composition cannot solve, because the bar is fixed to the
+     viewport and the label is placed in canvas percent. */
+  max-height: calc(100svh - var(--pad) * 2 - 34px);
   opacity: 0;
   transition: opacity 260ms var(--ease-out), color 260ms var(--ease-out);
 }
@@ -422,63 +426,33 @@ body {
 
 .exit {
   position: absolute;
+  right: 0;
+  top: 50%;
+  translate: 0 -50%;
   pointer-events: auto;
   appearance: none;
   background: none;
   border: 0;
-  /* 44px of target around a 1px mark. */
-  padding: 22px;
+  padding: 20px 22px;
   cursor: pointer;
-}
-
-.exit i {
-  display: block;
-  width: 26px;
-  height: 1px;
-  background: var(--ink-40);
-  transition: background-color 200ms var(--ease-out), transform 200ms var(--ease-out);
-}
-
-.exit--up i,
-.exit--down i {
-  width: 1px;
-  height: 26px;
+  font: inherit;
+  font-size: 30px;
+  line-height: 1;
+  color: var(--ink-40);
+  transition: color 260ms var(--ease-out), translate 260ms var(--ease-out);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .exit:hover i {
-    background: var(--ink);
-    transform: scale(1.25);
+  .exit:hover {
+    color: var(--ink);
+    translate: 6px -50%;
   }
 }
 
-.exit:focus-visible i {
-  background: var(--ink);
-}
 
-.exit--left {
-  left: 0;
-  top: 50%;
-  translate: 0 -50%;
-}
 
-.exit--right {
-  right: 0;
-  top: 50%;
-  translate: 0 -50%;
-}
 
-.exit--up {
-  top: 0;
-  left: 50%;
-  translate: -50% 0;
-}
 
-.exit--down {
-  bottom: 0;
-  left: 50%;
-  translate: -50% 0;
-}
 
 /* ── Header ────────────────────────────────────────────────────────────────
    The literal facts, so a visitor who leaves in five seconds still leaves
@@ -545,6 +519,64 @@ body {
   flex-wrap: wrap;
   gap: clamp(14px, 2.2vw, 32px);
   list-style: none;
+}
+
+.out {
+  display: block;
+  position: relative;
+  width: 20px;
+  height: 20px;
+}
+
+.out i {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--ink-40);
+  transition: border-color 260ms var(--ease-out), translate 320ms var(--ease-out);
+}
+
+.out i:nth-child(1) {
+  top: 0;
+  left: 0;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.out i:nth-child(2) {
+  top: 0;
+  right: 0;
+  border-left: 0;
+  border-bottom: 0;
+}
+
+.out i:nth-child(3) {
+  bottom: 0;
+  left: 0;
+  border-right: 0;
+  border-top: 0;
+}
+
+.out i:nth-child(4) {
+  bottom: 0;
+  right: 0;
+  border-left: 0;
+  border-top: 0;
+}
+
+/* The corners pull APART, which is what the camera is about to do. */
+@media (hover: hover) and (pointer: fine) {
+  .back:hover .out i {
+    border-color: var(--ink);
+  }
+  .back:hover .out i:nth-child(1) { translate: -3px -3px; }
+  .back:hover .out i:nth-child(2) { translate: 3px -3px; }
+  .back:hover .out i:nth-child(3) { translate: -3px 3px; }
+  .back:hover .out i:nth-child(4) { translate: 3px 3px; }
+}
+
+.back {
+  text-decoration: none;
 }
 
 .links a,

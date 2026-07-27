@@ -216,20 +216,16 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
 
   /** Left and right always move, round a ring that wraps. Never into a smaller
    *  drawing: those are reached by clicking one. */
-  const nextAspect = useCallback(
-    (by: 1 | -1) => {
-      const fromId = at ? ASPECT_OF[at] : null;
-      return fromId ? HERO[step(fromId, by)].drawing : null;
-    },
-    [at],
-  );
+  const nextAspect = useCallback(() => {
+    const fromId = at ? ASPECT_OF[at] : null;
+    return fromId ? HERO[step(fromId)].drawing : null;
+  }, [at]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") return back();
-      const by = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
-      if (!by || !at) return;
-      const next = nextAspect(by);
+      if (e.key !== "ArrowRight" || !at) return;
+      const next = nextAspect();
       if (!next) return;
       e.preventDefault();
       go(next);
@@ -247,24 +243,14 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
     const start = swipe.current;
     swipe.current = null;
     if (!start || !at) return;
-    const dx = e.clientX - start.x;
-    if (Math.abs(dx) < SWIPE) return;
     // Swiping left brings the next one in from the right, the way a map moves.
-    const next = nextAspect(dx < 0 ? 1 : -1);
+    // Only that way: the ring turns one direction.
+    if (e.clientX - start.x > -SWIPE) return;
+    const next = nextAspect();
     if (next) go(next);
   };
 
-  // Always both, because the ring always turns.
-  const exits = useMemo(
-    () =>
-      at
-        ? ([
-            { dir: "left" as const, drawing: nextAspect(-1)! },
-            { dir: "right" as const, drawing: nextAspect(1)! },
-          ])
-        : [],
-    [at, nextAspect],
-  );
+  const onward = at ? nextAspect() : null;
 
   const weight = (drawing: string) => {
     if (melt && (drawing === melt.from || drawing === melt.to)) return "melting";
@@ -429,18 +415,15 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
         </p>
       </div>
 
-      <nav className="exits" aria-label="Nearby" inert={at === null}>
-        {exits.map((e) => (
-          <button
-            key={e.dir}
-            type="button"
-            className={`exit exit--${e.dir}`}
-            onClick={() => go(e.drawing)}
-          >
-            <span className="sr-only">{`Move ${e.dir}`}</span>
-            <i aria-hidden="true" />
+      {/* One control, one direction. The ring wraps, so it is never a dead end
+          and never needs a partner pointing the other way. */}
+      <nav className="exits" aria-label="Onward" inert={at === null}>
+        {onward ? (
+          <button type="button" className="exit" onClick={() => go(onward)}>
+            <span className="sr-only">Next</span>
+            <span aria-hidden="true">&rsaquo;</span>
           </button>
-        ))}
+        ) : null}
       </nav>
 
       <p className="sr-only" aria-live="polite">
@@ -451,8 +434,21 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
         <div className="links" inert={at !== null}>
           {contact}
         </div>
-        <button type="button" className="back" onClick={back} inert={at === null}>
-          Back
+        {/* Zooming out, drawn rather than labelled: four corner rules that pull
+            outward on hover, which is what the camera is about to do. */}
+        <button
+          type="button"
+          className="back"
+          onClick={back}
+          inert={at === null}
+          aria-label="Zoom out"
+        >
+          <span className="out" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+            <i />
+          </span>
         </button>
       </div>
     </div>
