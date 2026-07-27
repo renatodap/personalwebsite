@@ -9,7 +9,8 @@ import {
   ORBIT,
   ORBIT_SECONDS,
   REST,
-  RING_OF_HERO,
+  ringOf,
+  orbiterH,
   TALL_QUERY,
   cameraFor,
   spotOf,
@@ -317,10 +318,10 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
                   {
                     "--wx": h.wide.x,
                     "--wy": h.wide.y,
-                    "--wr": h.wide.h * RING_OF_HERO,
+                    "--wr": ringOf(h.wide, h.drawing, "wide"),
                     "--tx": h.tall.x,
                     "--ty": h.tall.y,
-                    "--tr": h.tall.h * RING_OF_HERO,
+                    "--tr": ringOf(h.tall, h.drawing, "tall"),
                     "--turn": o.turn,
                     "--spin": `${ORBIT_SECONDS}s`,
                   } as React.CSSProperties
@@ -336,7 +337,13 @@ export function Field({ aspects, contact }: { aspects: Aspect[]; contact: ReactN
                   style={
                     {
                       "--r": RATIO[drawing],
-                      "--oh": o.h,
+                      // As a fraction of the RING box, not the stage: a
+                      // percentage height resolves against the parent, and the
+                      // parent here is the square that spins. Passing canvas
+                      // percent made every orbiter about a third of its size.
+                      "--ohw": (o.h / (2 * ringOf(h.wide, h.drawing, "wide"))) * 100,
+                      "--oht":
+                        (orbiterH(drawing, "tall") / (2 * ringOf(h.tall, h.drawing, "tall"))) * 100,
                       "--turn": o.turn,
                       "--spin": `${ORBIT_SECONDS}s`,
                       maskImage: `url(/drawings/detail-${drawing}.svg)`,

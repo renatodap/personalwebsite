@@ -42,11 +42,16 @@ import type { Spot } from "@/lib/layout";
 const WIDTH = 1.05;
 
 /** Swirl amplitude in canvas percent, at the midpoint. */
-const CURL = 9;
+/* Small, and it is a LANE offset rather than a swirl. Renato, 2026-07-27: "i
+   want it to actually feel like liquid, like streams of liquid all going in the
+   same direction and reconstructing". A swirl per particle is turbulence, and
+   turbulence reads as a swarm; parallel lanes of different speeds read as a
+   current. */
+const LANE = 4.5;
 
 /** Frames of streak kept behind each particle. A one-frame streak is a dash; a
  *  trail is a filament, and filaments are what a fluid is made of. */
-const TRAIL = 5;
+const TRAIL = 9;
 
 export function Melt({
   from,
@@ -120,7 +125,10 @@ export function Melt({
       for (let i = 0; i < n; i++) {
         const ax = a[oa[i] * 2];
         const ay = a[oa[i] * 2 + 1];
-        phase[i] = (ax * 7.3 + ay * 4.1) % 1;
+        // The lane a particle rides in: its position ACROSS the direction of
+        // travel. Neighbours in the figure stay neighbours in the stream, which
+        // is what keeps the flow laminar instead of scattering it.
+        phase[i] = Math.min(1, Math.max(0, 0.5 + (ax * px + ay * py) * 0.9));
         // Along the direction of travel, so departure sweeps.
         lead[i] = dx >= 0 ? ax : 1 - ax;
       }
@@ -140,7 +148,7 @@ export function Melt({
 
       const at = (i: number, t: number, out: [number, number]) => {
         // Renormalised so every particle still completes exactly at t = 1.
-        const local = Math.min(1, Math.max(0, (t - lead[i] * 0.3) / 0.7));
+        const local = Math.min(1, Math.max(0, (t - lead[i] * 0.42) / 0.58));
 
         // Leaves fast, arrives slow, and eases IN at the very start too, so ink
         // peels away rather than jumping. A pure ease-out starts at maximum
@@ -156,17 +164,15 @@ export function Melt({
 
         // One current: every particle bows the same way. The swirl is a full
         // turn of phase across the flight, so the stream rolls over itself.
-        // Two swirls at different rates, so the current folds over itself
-        // instead of every particle tracing one tidy arc.
-        const swell = Math.sin(Math.PI * e) ** 0.8;
-        const curl =
-          swell *
-          CURL *
-          (Math.sin(phase[i] * Math.PI * 2 + e * Math.PI * 1.7) * 0.72 +
-            Math.sin(phase[i] * Math.PI * 5.1 + e * Math.PI * 3.3) * 0.28);
+        // Every particle bows the SAME way, by an amount fixed for its lane, so
+        // the cloud travels as a set of parallel streams rather than each mark
+        // wandering on its own. The bow swells and resolves, so the streams part
+        // from the figure and close back onto the next one.
+        const swell = Math.sin(Math.PI * e);
+        const bow = swell * LANE * (phase[i] - 0.5) * 2;
 
-        out[0] = x0 + (x1 - x0) * e + px * curl;
-        out[1] = y0 + (y1 - y0) * e + py * curl;
+        out[0] = x0 + (x1 - x0) * e + px * bow;
+        out[1] = y0 + (y1 - y0) * e + py * bow;
       };
 
       const p: [number, number] = [0, 0];
