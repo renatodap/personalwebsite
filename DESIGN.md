@@ -2,156 +2,178 @@
 
 <!-- impeccable:design-schema 1 -->
 
-**World: The Field.** One screen, one person, twenty-three drawings, one camera. Prussian blue ground, warm rag-paper line, every version of him standing in one space at one time.
+**World: The Field.** One screen that never scrolls, twenty-three drawings of one person, and a camera that moves over them. Prussian blue ground, warm rag-paper line, nothing else.
 
-The colour and the material carry over from the retired Plate Sequence world and are unchanged: `#0B2A45` ground with a warm `#F4EFE6` line is **cyanotype** (Anna Atkins, 1843, the first photographically illustrated book), not blueprint. A cyanotype is a *photographic* process, so it carries an image and at most a caption, and none of the drafting furniture, item numbers, callout balloons, title blocks, that the earlier Exploded Assembly world dragged in and was retired for.
+The colour and the material carry over unchanged from the retired Plate Sequence world: `#0B2A45` ground with a warm `#F4EFE6` line is **cyanotype** (Anna Atkins, 1843, the first photographically illustrated book), not blueprint. A cyanotype is a *photographic* process, so it carries an image and at most a caption, and none of the drafting furniture, item numbers, callout balloons or title blocks, that the earlier Exploded Assembly world dragged in and was retired for.
 
-What is retired is the **sequence**. The plate book made its argument by putting one image after another and letting adjacency do the talking, which requires a scroll. Renato removed the scroll on 2026-07-26: *"basically everything fits in one page."*
+What is retired is the **sequence**. A plate book argues by putting one image after another and letting adjacency talk, which requires a scroll. Renato removed the scroll on 2026-07-26: *"basically everything fits in one page."*
 
 ---
 
 ## The governing idea
 
-**Simultaneity, not sequence.** Eighteen versions of one person are on one screen at one time, and you cannot look at any of them without seeing the others. Range stops being something the visitor accumulates on the way down and becomes something taken in at a glance.
+**Simultaneity, then depth.** Five drawings stand on one screen at once. Going into one does not swap to another layout; it moves a camera over the same canvas, and that aspect's own drawings are revealed orbiting it. Range is taken in at a glance rather than accumulated on the way down.
 
-Four consequences bind every decision downstream:
+Four consequences bind everything downstream:
 
-1. **The drawing is the display element.** Type never competes with it. There is no headline size anywhere on this site, because the figure is the headline.
-2. **One space, not two screens.** Zooming in does not swap to another layout. It moves a camera over the same canvas, so what you see close up is exactly what you saw far away, larger, in its own place, with its neighbours still around it. *(Binding, at Renato's instruction 2026-07-27: "when i zoom in i need to see the exact same layout as zoomed out.")*
-3. **Every drawing is a destination.** Not five. Any of the twenty-three can be zoomed into, and from any of them you can keep moving left, right, up or down until you are genuinely at the edge of the field.
-4. **Depth is the argument.** The five childhood drawings sit beside the adult they answer and are invisible until the camera comes in close. Zoom into the man and the boy is already there, in the same space, and nothing is written about it.
+1. **The drawing is the display element.** There is no headline size anywhere on this site, because the figure is the headline.
+2. **One space, not a set of screens.** *(Binding, 2026-07-27: "when i zoom in i need to see the exact same layout as zoomed out.")*
+3. **Nothing overlaps. At all.** Not a little, not at 25%. Two traced line figures on top of each other read as one damaged figure, and the whole page is line figures. *(Binding, 2026-07-27: "no overlaps are allowed at all.")*
+4. **Depth is the argument.** The five childhood drawings orbit the adult they answer and are invisible until you go in. Nothing is written about it.
+
+## The three levels
+
+| | What is on screen | Words |
+|---|---|---|
+| **Far** | The five heroes alone. Nothing else is drawn. | None |
+| **Aspect** | One hero, its own drawings orbiting it, and no other aspect at all. | Its one or two sentences |
+| **Near** | One of those smaller drawings, filling the frame. | None: the words belong to the aspect, not to each drawing |
+
+*(Binding, 2026-07-27: "once im in camera i cant see anything music, just arrows to move.")*
 
 ## Composition
 
-The canvas is measured 0-100 on both axes at a **fixed** aspect ratio per arrangement, 1.6 wide and 0.62 tall. Fixing the ratio is what makes the composition exact rather than approximate: a drawing's width in canvas percent is then a constant instead of something that swells on a narrow window and collides with its neighbour. Surplus viewport is bare field, invisible because the ground is one flat colour.
+The canvas is measured 0-100 on both axes at a **fixed** aspect ratio per arrangement: **1.6 wide, 0.62 tall**. Fixing the ratio is what makes the composition exact rather than approximate, because a drawing's width in canvas percent is then a constant instead of something that swells on a narrow window. Surplus viewport is bare field, invisible because the ground is one flat colour.
 
-A drawing is placed by the **centre** of its box and sized by **height** alone; width comes from its own trimmed viewBox. Sizing by height is what makes eighteen drawings read as one person at one scale rather than as eighteen assorted boxes.
+A drawing is placed by the **centre** of its box and sized by **height** alone; width comes from its own trimmed viewBox. Sizing by height is what makes many drawings read as one person at one scale.
 
-**NOTHING OVERLAPS.** Not a little, not at 25%: at all. Two traced line figures on top of each other read as one damaged figure, and the whole page is line figures. *(Binding, at Renato's instruction 2026-07-27: "no overlaps are allowed at all.")* Positions were authored by hand and then relieved of every collision by a relaxation solver holding a 1.4% gap, which moved nothing more than 2.1% from where it was drawn. A test asserts the zero.
+**Two arrangements, separately authored.** The switch is keyed on the canvas's own proportion, `max-aspect-ratio: 19/20`, not on a pixel width, because the composition is a shape: a tall narrow window wants the tall arrangement whatever its width. `TALL_QUERY` in `layout.ts` and the CSS media query must not disagree.
 
-**Three weights**, because only about four things are read in parallel and eighteen equal marks would be texture with no way in: five heroes at 18-26% of canvas height carry full ink and the aspect's label; thirteen others at 7-15% sit at 55% ink; the ground is the rest. Hovering one aspect lights every drawing of it wherever it sits and drops the others to 16%, which shows the grouping without drawing a single line.
+**The arrangement is resolved in JavaScript and emitted as ONE set of variables** (`--x`, `--y`, `--h`, `--ring`, `--oh`). This is not a style preference; it is the fix for the worst bug this design had. Emitting both sets and choosing between them in a media query meant two rules in two blocks had to agree, and they did not: rings kept their wide radius on tall screens, and because custom properties inherit, a bare `.mark` rule then placed every orbiter at its *hero's* coordinates and whole aspects collapsed onto one point. One variable cannot disagree with itself.
 
-**Two arrangements, separately authored.** A composition made for a landscape frame becomes a list when poured into a portrait one. The switch is keyed on the canvas's own proportion (`max-aspect-ratio: 19/20`), not on a pixel width, because the composition is a shape: a tall narrow window wants the tall arrangement whatever its width. The CSS query and `TALL_QUERY` in `layout.ts` must not disagree.
+## Orbits
+
+A satellite is placed by a radius and an angle around its hero rather than by an authored coordinate, which makes non-overlap true by construction. One ring per aspect, satellites spread evenly around it.
+
+**The ring is a square box that spins**, so the satellite rides a circle in *pixels*. Its child counter-rotates at the same rate so the drawing stays upright while it travels. *(Binding, 2026-07-27: "they have to be always correctly oriented even as they orbit around.")* One turn takes **fifteen minutes** — slow enough that nothing appears to move, and the arrangement is simply different if you come back.
+
+**The orbit path is never drawn.** `background`, `border`, `outline`, `box-shadow` and both pseudo-elements are explicitly off, as declarations rather than a comment, because it kept coming back.
+
+Ring radius is **computed, not chosen** (`ringOf`), and getting it right took four attempts, each recorded because each was a real geometric error:
+
+1. A fixed multiple of hero height ignores that the ring must clear the hero's **width**. `falls` is 1.32:1.
+2. Width in canvas percent depends on the **canvas ratio**, so it differs between arrangements for the same drawing.
+3. Clearing both axes is still not enough: a satellite clears the hero above it and beside it and still cuts the **corner** on the diagonal. The condition that holds at every angle is that the hero's box, grown by the satellite's half-size and the gap, fits entirely inside the orbit ellipse, so the radius is a hypotenuse.
+4. `ORBIT_X` was hand-picked and described an ellipse the CSS was never drawing. It is **derived** from the canvas ratio now.
+
+Current values: `RING_OF_HERO` 0.5 as a floor, `GAP` 3.2, `ORBITER_SCALE` 1 wide and 0.55 tall.
 
 ## The camera
 
-**A CSS `transform` over one canvas, animated with the Web Animations API.** Closed form: with `transform-origin: 0 0`, bringing canvas point `(cx, cy)` to anchor `(ax, ay)` at zoom `k` is `translate(ax − k·cx, ay − k·cy) scale(k)`, in percentages that resolve against the stage's own box. No measurement, no `ResizeObserver`, no layout read, correct at every viewport.
+**A CSS `transform` over one canvas, animated with the Web Animations API.** Closed form: with `transform-origin: 0 0`, bringing canvas point `(cx, cy)` to anchor `(ax, ay)` at zoom `k` is `translate(ax − k·cx, ay − k·cy) scale(k)`, in percentages that resolve against the stage's own box. No measurement, no `ResizeObserver`, no layout read.
 
-**Not the View Transitions API.** It cannot be interrupted or retargeted once running, and a camera you cannot redirect mid-flight is not a camera. It also animates bitmap snapshots, which across this much scale is the exact softness this design works to avoid. **Not FLIP** either: it needs a layout read per move to compute what one expression already knows.
+**Not the View Transitions API.** It cannot be interrupted or retargeted once running, and a camera you cannot redirect mid-flight is not a camera. It also animates bitmap snapshots, which across this much scale is the exact softness this design avoids. **Not FLIP** either: a layout read per move to compute what one expression already knows.
 
-`k` is **capped at 4.2** so a small drawing does not fly the camera so far in that the field around it leaves the frame. Seeing where you are is the point.
+**Zoom is derived from the RING, not the hero** (`zoomFor`, `FRAME` 44, clamped 1.25 to 3.4). Sizing it from the hero assumed every aspect needed the same magnification, but the thing that must fit on screen is the whole orbit, and `falls` needs a far wider one than `working`. The hero's on-screen size therefore varies slightly between aspects, which is the correct trade.
 
-**Crispness, and the trap.** A scale animation is *not* re-rastered while it runs, so every drawing is soft for the whole flight. Three countermeasures: a 2.4px blur that rises and falls across the flight, which hides the interpolation and is already the house rule for crossing between two line drawings; `commitStyles()` then `cancel()` at the end, which turns the final transform into an ordinary scripted style and *does* re-raster; and **`will-change: transform` is banned outright**, because it pins the layer to a fixed bitmap that never re-rasters under transform and would leave every zoomed drawing permanently soft. Its appearance in this codebase is a bug. Research: `docs/research/2026-07-26-zoomable-montage-research.md`.
+**Going into a small drawing keeps it where it was.** The camera moves so the drawing stays roughly in the part of the frame you were already looking at rather than snapping to the middle: measured, 44px of drift while growing 2.73×. *(Binding, 2026-07-27.)* The aim is **measured from the DOM** at the moment of the click, because the ring turns and the angle in the layout is only where the drawing started.
+
+**Crispness.** A scale animation is not re-rastered while it runs, so everything is soft for the whole flight. Countermeasures: a 2.2px blur across the flight, `commitStyles()` then `cancel()` at the end so the final transform becomes an ordinary scripted style and *does* re-raster, and **`will-change: transform` is banned outright** because it pins the layer to a bitmap that never re-rasters. Research: `docs/research/2026-07-26-zoomable-montage-research.md`.
 
 ## Navigation
 
-- **Any drawing** is a real `<button>`. Click, tap, Enter and Space all work; hover is decoration only, because a phone has no hover state.
-- **Five labels** sit under the five largest drawings and never move with the camera. They are the navigation, and they are always visible: the interaction is not discoverable otherwise, and a hover-only affordance is not an affordance on a phone.
-- **Arrows and swipe** move to the nearest drawing in that direction, chosen by a 75-degree cone rather than a quadrant, so a drawing sitting just past 45 degrees is not stranded unreachable in both directions. A direction with nothing in it simply does not move, which is how the field says you have reached its edge. A test asserts the graph is fully connected from every drawing.
-- **Exits** are drawn at the four edges, one per direction that has something in it. A zoomable interface loses people when the exits are invisible.
-- **Escape**, the Back control, and the browser back button all zoom out. Each drawing pushes a `#slug`, so the URL is shareable and the phone's back gesture does the expected thing.
+- **One direction, and it wraps.** brazil → music → sport → camera → software → brazil. A single chevron at the right edge that leans further right on hover. One direction is a simpler promise than two.
+- **Onward means something different at each level.** At an aspect it is the next aspect; standing inside one it is the next drawing *of that aspect*, until you zoom back out.
+- **Zoom out** is drawn, not labelled: four corner rules that pull apart on hover, which is what the camera is about to do. It climbs one level.
+- Every drawing is a real `<button>`. Click, tap, Enter and Space all work; hover is decoration only, because a phone has no hover state.
+- Five labels sit by the five heroes in the far view, flipping above a hero that sits low so they never reach the contact bar.
+- Escape, the zoom-out control and the browser back button all climb a level. Each drawing pushes a `#slug`, so the URL is shareable and the phone's back gesture behaves.
 
-## Color
+## Colour
 
-**Strategy: Drenched, two colours, no accent.** The surface *is* the blue.
-
-Physical scene forcing the choice: a contact print in Prussian blue, seen on the paper it was coated on.
+**Drenched, two colours, no accent.** The surface *is* the blue.
 
 | Role | Token | Value | Use |
 |---|---|---|---|
-| Field | `--field` | `#0B2A45` | The ground. Every surface on the site. |
+| Field | `--field` | `#0B2A45` | The ground. Every surface. |
 | Ink | `--ink` | `#F4EFE6` | All line work and all text. |
-| Ink, secondary | `--ink-70` | `--ink` at 70% | The role and location line. Second lines of a caption. |
-| Ink, field texture | `--ink-55` | `--ink` at 55% | Drawings that are not the one you are looking at. |
-| Ink, quiet | `--ink-40` | `--ink` at 40% | Labels and exit marks. **Never body text.** |
+| Ink, secondary | `--ink-70` | 70% | The role line, second sentences. |
+| Ink, texture | `--ink-55` | 55% | Drawings that are not the one being looked at. |
+| Ink, quiet | `--ink-40` | 40% | Labels and controls. **Never body text.** |
+| Ink, hairline | `--ink-18` | 18% | Link underlines at rest. |
+| Ink, solid | `--ink-solid` | `#F4EFE6` | The melt canvas only. See Motion. |
 
-**There is no third colour.** The retired world reserved a red (`--markup: #FF4A2E`) for revision marks; red is a redline pencil and belongs to drafting, so it is gone. Everything that would reach for an accent uses opacity or full-strength ink instead. Links are ink with an underline. The drawing you are looking at is ink at full strength; everything else is the same ink, quieter.
-
-This is a **choice, not a property of the world** — brush-coated cyanotypes are routinely tea-toned to warm brown, so a second hue would not be false to the material. It is excluded because two colours let the drawings own 100% of the visual interest, and because it makes drift structurally impossible.
-
-The ink is **warm** (`#F4EFE6`), not the blue-cast white the retired world used (`#EAF2F8`). In a real cyanotype the white *is* the paper, and paper is warm. This is a two-hex change that makes the page read as a print rather than a screen, and it is load-bearing.
-
-Measured contrast against `--field`, not assumed:
-
-- `--ink` on `--field`: **12.8:1** — AAA at every size.
-- `--ink-70` on `--field`: **7.0:1** — AAA for body text. Safe for the role line at 12.5px.
-- `--ink-55` on `--field`: **4.9:1** — passes AA even for text; used for the field texture and the labels' lit state.
-- `--ink-40` on `--field`: **3.4:1** — fails AA for text, passes the 3:1 non-text floor (WCAG 1.4.11). Restricted to the aspect labels and the exit marks, and no state is ever carried by colour alone: a drawing's state is carried by opacity plus the camera's position.
-
-An unlit edge or coating vignette is native to the material and is deliberately **not used**: at these sizes it renders as a gradient, which reads as screen chrome rather than paper.
+The ink is **warm**, not the blue-cast white the first world used: in a real cyanotype the white *is* the paper, and paper is warm. Measured against `--field`: `--ink` 12.8:1, `--ink-70` 7.0:1, `--ink-55` 4.9:1, `--ink-40` 3.4:1 (non-text only, above the 3:1 floor of WCAG 1.4.11). No state is ever carried by colour alone.
 
 ## Typography
 
-**One family: Archivo**, variable, self-hosted through `next/font`. Its Expanded cut sets the name; the regular cut sets everything else. No second family.
+**One family: Archivo**, variable, through `next/font`. The Expanded cut sets the name and the labels; the regular cut sets everything else. **There is no monospace and no serif on this site.**
 
-The retired world paired a DIN-lineage face with Martian Mono. Both were drafting instruments — ISO lettering and a dimension-table monospace — and both are retired with the drafting. **There is no monospace on this site.** Numbers use Archivo's tabular figures where alignment matters, which is almost nowhere.
+Type does caption work only. Name 12px expanded, tracked `0.14em`, uppercase; labels 11px in the same cut; role and location 12.5px; sentences `clamp(15px, 1.15vw, 18px)`.
 
-Type does caption work only. There is no display size. The scale is roughly: name at 12px in the Expanded cut, tracked `0.14em`, uppercase; role and location at 12.5px; aspect labels at 11px in the same cut; sentences at `clamp(15px, 1.15vw, 18px)`, measured to about 36 characters.
-
-**Banned faces**, as training-data defaults regardless of how well they would read: Fraunces, Instrument Serif, Instrument Sans, Playfair, Cormorant, Lora, Crimson, Newsreader, Syne, Space Grotesk, Space Mono, IBM Plex (any), Inter as display, DM Sans, DM Serif, Outfit, Plus Jakarta Sans. No serif is used here at all; "editorial subject wants a serif" is precisely the association the ban exists to break.
-
-## Copy discipline
-
-**Words are rare and expensive.** Nine sentences on the whole site, and none of them is visible until you have gone in to look at something.
-
-- **A sentence must earn its place against the alternative of a drawing.** If the image says it, delete the sentence.
-- **Plain first person, short declaratives.** No adjectives doing a fact's work. Renato's own voice is the reference: "I taught myself seven instruments the same way I learn everything else. By starting."
-- **Nothing is stated that the structure can imply.** The site never claims range, curiosity, playfulness, or that its subject never grew up. The childhood drawings are never captioned, labelled, dated, or remarked upon; they simply turn out to be standing beside the adult when you get close enough to see them.
-- **No em-dashes anywhere in visible copy.** Not in captions, links, alt text, or the header. Use a period, a comma, or a regular hyphen. The em-dash is the single most reliable machine-written tell.
-- **No numbers that measure throughput.** "Seven instruments" describes a method of learning and stays. Counts of applications shipped, clients served or servers run are banned even though every one is true.
-- **Every number carries its mechanism** in the same sentence.
-- **No client, company, product or application names**, in any tense.
-
-## Imagery
-
-Twenty-three traced line drawings derived from Renato's own photographs, in `public/drawings/`. **All twenty-three are used.** There are no photographs on the site and no stock imagery of any kind.
-
-Each SVG carries `fill="currentColor"`, `viewBox="0 0 1024 1024"`, a `<title>`, and no background of its own, so the ground is always `--field` and the ink is always CSS-supplied. Verified: 23/23, zero baked colours. The 1024px PNG originals are the authoring artifact and are not shipped.
-
-Five drawings are of Renato as a child: `brazil`, `first-guitar`, `first-racket`, `first-camera`, `peter-pan`. They are drawn at exactly the same ink weight and treatment as the adult ones, because the claim is that they are current components of the present person, not history. **Nothing marks them as childhood.**
-
-Each sits **beside the adult it answers** and is invisible until the camera comes in close, so the wide view is all recent and the boy is what you get for going in. `peter-pan` is the only childhood drawing with no adult counterpart: the rule is established four times and broken once, and the site never remarks on either.
+**Banned faces**, as training-data defaults regardless of how well they would read: Fraunces, Instrument Serif, Instrument Sans, Playfair, Cormorant, Lora, Crimson, Newsreader, Syne, Space Grotesk, Space Mono, IBM Plex, Inter as display, DM Sans, DM Serif, Outfit, Plus Jakarta Sans.
 
 ## Motion
 
-**Two motions and no others.**
+**Four motions and no others.**
 
-1. **The field develops.** On load the drawings arrive on a stagger, each wiping in from the top through a `clip-path` sweep, about 1.4s end to end. A contact sheet coming up in the tray. Once. `clip-path` only, never opacity: a drawing's opacity is its WEIGHT on the field, and an animation filling forwards would win over that forever.
-2. **The camera flies.** 700ms, `cubic-bezier(0.22, 1, 0.32, 1)`, interruptible. Retargeting commits where the camera actually is, cancels, and lets the next animation infer its start from there, so crossing the field in five presses makes it chase rather than snap.
+1. **The field develops.** On load the five arrive on a stagger, each wiping in from the top through a `clip-path` sweep. `clip-path` only, never opacity: a drawing's opacity is its WEIGHT, and an animation filling forwards would win over that forever. Applied with `.mark:not(.orbiter)` — `animation` is a shorthand, and a bare `.mark` rule silently resets an orbiter's counter-rotation.
+2. **The camera flies.** 720ms, `cubic-bezier(0.22, 1, 0.32, 1)`, interruptible: retargeting commits where the camera is, cancels, and lets the next animation infer its start from there.
+3. **The orbits turn.** Fifteen minutes a revolution, pure CSS, no JavaScript.
+4. **One drawing melts into the next.** 1500ms, and only between two heroes.
 
-Everything else is opacity. No parallax, no marquee, no scroll-driven anything, because there is no scroll.
+### The melt
 
-**`prefers-reduced-motion: reduce` removes the zoom entirely.** Not a faster zoom: WCAG 2.3.3 names zooming specifically, and a zoom covering a large part of the screen is the motion most likely to cause vestibular symptoms. The camera jumps, the states cross-fade, everything stays reachable and legible, and no information exists only in an animated state.
+Ink is sampled from each drawing by rasterising it small and reading the **alpha channel** (`ink.ts`, 5200 points), not by calling `getPointAtLength` thousands of times. Points, not paths, because these are potrace outputs ranging from 4 subpaths to 140: every path-morphing tool maps subpath to subpath, so morphing those two leaves 136 shapes with nowhere to go.
+
+It is drawn as **capsules 3.4px wide** from where a particle was to where it is, which gives squash and stretch for free — a fast mark draws a long capsule, a resting mark draws a circle. Blur runs 1px → 4.5px → 1px through a static `feColorMatrix` alpha threshold, so masses merge at the midpoint and the handover to the vector mask is invisible at both ends.
+
+Three failures are recorded because each was instructive. **The goo threshold on 1px dots makes amoebas**: it needs bodies, which is what the capsule width supplies. **At 7.5px wide the figure fills in solid** and can never resolve back to a line drawing. **A cancelled sampling callback must not report done**, or React's double-invoked effects tear down the run before it draws a frame; and the clock must start when the ink is ready, not when the effect fires, or a cold pair skips the whole melt.
+
+Motion has **anticipation, drag and follow-through**: it gathers before it leaves, lanes tear away at different times rather than sliding off as a sheet, and it overshoots and settles, because liquid does not stop where it was aimed. Research: `docs/research/2026-07-27-liquid-deconstruct-reconstruct.md`.
+
+**`prefers-reduced-motion: reduce` removes the zoom and the melt entirely.** Not a faster zoom: WCAG 2.3.3 names zooming specifically, and a zoom covering a large part of the screen is the motion most likely to cause vestibular symptoms. The camera jumps, the states cross-fade, everything stays reachable, and no information exists only in an animated state.
+
+## Imagery
+
+Twenty-three traced line drawings derived from Renato's own photographs, in `public/drawings/`. **All twenty-three are used.** No photographs and no stock imagery of any kind.
+
+Each SVG carries `fill="currentColor"`, a trimmed viewBox, a `<title>`, and no background of its own, so the ground is always `--field` and the ink is always CSS-supplied. Intrinsic ratios are **generated** into `src/lib/ratios.ts` by `scripts/ratios.mjs`; a test fails if the committed file and the files on disk disagree.
+
+Five drawings are of Renato as a child: `brazil`, `first-guitar`, `first-racket`, `first-camera`, `peter-pan`. They are drawn at exactly the same ink weight as the adult ones, because the claim is that they are current components of the present person. **Nothing marks them as childhood.** `peter-pan` is the only one with no adult counterpart: the rule is established four times and broken once, and the site never remarks on either.
+
+## Copy discipline
+
+**Words are rare and expensive.** Nine sentences on the whole site, and none is visible until you have gone in to look at something.
+
+- A sentence must earn its place against the alternative of a drawing.
+- Plain first person, short declaratives. No adjectives doing a fact's work.
+- **Nothing is stated that the structure can imply.** The site never claims range, curiosity or playfulness.
+- **No em-dashes anywhere in visible copy.** The single most reliable machine-written tell.
+- No numbers that measure throughput. Every number carries its mechanism.
+- No client, company, product or application names, in any tense.
+
+Enforced by `prisma/copy-rules.mjs` against every visible string, in the seed and in the tests.
+
+## Data
+
+**Content is Postgres; geometry is code.** Aspects, sentences, alt text and which drawing leads are rows, seeded from `src/content/site.mjs`, so `/admin` can edit them without a deploy. Where anything sits and how large it is lives in `src/lib/layout.ts` and has no knob, so the composition cannot drift through a form. Every read falls back to the seed source, so an unreachable database renders the site rather than an error page.
+
+## Verification
+
+`npm test` (29 tests) covers coverage, zero overlap, ring closure in both directions and within each aspect, the camera identity, the generated ratio table, and the copy guard.
+
+**`scripts/overlap.mjs` is the one that matters.** It measures what the browser *actually renders* at fourteen viewport sizes across every level and fails on any collision. It exists because the unit tests passed for days while the live page was visibly colliding: they checked the model, and the model and the CSS had drifted apart. Run it against a dev server before believing any layout change.
+
+Note for anyone automating: the orbiters rotate forever, so Playwright's actionability check never sees them settle and `.click()` times out. Dispatch the click directly.
 
 ## Prohibitions
 
-Each checked against the world's own materials, with one narrowing recorded below.
+Carried forward: no drafting furniture of any kind, no monospace, no third colour, no drop shadows, gradients, glows or glassmorphism, no cards, no emoji, no icon sets, no skill bars, no logo walls, no hand-drawn decorative SVG, no cropping of a drawing by any mechanism, no LLM register, no invented content, no client or product names.
 
-**Retired with the old world, and specifically not to return:** item numbers, callout balloons, leader lines, dimension lines, break lines, title blocks, bills of materials, revision tables, sheet tabs, detail bubbles, `SCALE 2:1` notes, ISO line-weight semantics, and any monospace type. These are blueprint furniture. The visitor was being asked to learn a notation before being allowed to look.
+Specific to this world:
 
-**Also banned:**
-
-- No visible numbering or `01 / 12` pagination. Position is spatial and is shown spatially.
-- **No scroll.** Not a hidden one, not a `scroll-behavior`, not a snap point. `html, body { overflow: hidden }`.
-- **No scroll cues**, which now follows from there being no scroll.
-- **No second layout for the zoomed state.** One canvas, one camera.
-- **No overlap between any two drawings, ever.**
+- **No scroll.** Not a hidden one, not a `scroll-behavior`, not a snap point.
+- **No overlap between any two drawings, ever**, at any viewport size.
 - **No `will-change: transform`.** It makes every zoomed drawing permanently soft.
 - **No View Transitions API.** It cannot be interrupted, which this interaction requires.
-- No drop shadows, gradients, glows, or glassmorphism.
-- No rounded card shells. No cards at all.
-- No emoji. No icon sets; the site needs no icons.
-- No skill bars, proficiency meters, or technology logo walls.
-- No hand-rolled decorative SVG. The twenty-three authored drawings are the imagery; nothing else is drawn.
-- **No cropping of a drawing, ever**, by any mechanism: not `mask-size` past 100%, not `object-fit: cover`, not an `overflow: hidden` box smaller than its figure.
-- No `content-visibility: auto`. Skipped subtrees paint as bare ground, which on a page whose entire content is images means a blank screen. The full mask payload is ~0.64 MB across all twenty-three, each cached individually, so there is nothing to defer.
-- No animation of a layout property. The camera is `transform` only.
-- No eyebrow labels above sections. There are no sections.
-- No LLM register: "passionate about", "cutting-edge", "seamless", "leverage", "delve into", "a testament to", "unlock the potential".
-- No invented content. Every number traces to something real.
+- **No second layout for the zoomed state.** One canvas, one camera.
+- **No visible orbit path.**
+- **No animation of a layout property.** The camera is `transform` only.
+- **No placement variable emitted twice** for two breakpoints. Resolve the arrangement once, in code.
 
 ## Admin
 
-`/admin` is not yet built. When it is: same two colours, same family, working weight, mode is Operate, so density and scanability outrank expression. Neither motion appears there.
+`/admin` is not yet built. When it is: same two colours, same family, working weight, mode is Operate, so density and scanability outrank expression. None of the four motions appears there.
 
-It edits **content only**: the aspects, their sentences, the alt text, which drawing leads an aspect, and the header and contact strings. **Not** where anything sits or how large it is, which live in `src/lib/layout.ts` and have no knob. Layout and design are code and are not editable, chosen deliberately so the composition cannot drift through a form.
+It edits **content only**: the aspects, their sentences, the alt text, which drawing leads an aspect, and the header and contact strings. **Not** where anything sits or how large it is.
